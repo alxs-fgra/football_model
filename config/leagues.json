@@ -1,0 +1,7 @@
+{
+  "leagues": [
+    {"name": "LaLiga", "id": 140},
+    {"name": "Premier League", "id": 39},
+    {"name": "Bundesliga", "id": 78}
+  ]
+}
