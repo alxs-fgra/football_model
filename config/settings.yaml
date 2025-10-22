@@ -1,0 +1,12 @@
+data:
+  raw_path: data/raw/
+  processed_path: data/processed/
+  logs_path: data/logs/
+model:
+  thresholds: [0.5, 1, 1.5, 2, 2.5, 3, 3.5]
+  brier_target: 0.15
+  ece_target: 0.05
+backtesting:
+  train_years: [2015, 2022]
+  val_year: 2023
+  test_years: [2024, 2025]
