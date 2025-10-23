@@ -1,0 +1,54 @@
+name: Football ML Pipeline 🧠⚽
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 12 * * 0'  # Ejecuta cada domingo a las 12:00 UTC (6 AM México)
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📦 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: ⚙️ Run ML pipeline
+        run: |
+          echo "🚀 Starting automated Football ML pipeline..."
+          python scripts/01_data_ingestion.py
+          python scripts/02_feature_engineering.py
+          python scripts/05_add_targets.py
+          python scripts/03_modeling.py
+          python scripts/07_cross_validation.py
+          python scripts/06_evaluate_models.py
+          echo "✅ Pipeline completed successfully!"
+
+      - name: 🧹 Clean old files (>30 days)
+        run: |
+          echo "🧹 Cleaning old data files..."
+          find data/raw -type f -mtime +30 -delete || true
+          find data/processed -type f -mtime +30 -delete || true
+          echo "✅ Old raw and processed data older than 30 days deleted."
+
+      - name: 💾 Commit updated models & logs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Force add ignored logs and models folders
+          git add -f logs/ models/ reports/ || echo "Nothing to add"
+
+          git commit -m "🤖 Weekly auto-run and cleanup $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          git push || echo "No changes to push"
