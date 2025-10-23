@@ -2,27 +2,38 @@ name: ⚽ Weekly Football Prediction Pipeline
 
 on:
   schedule:
-    - cron: "0 6 * * MON"   # Lunes 06:00 UTC
-  workflow_dispatch:         # Permite correrlo manualmente
+    - cron: "0 6 * * MON"   # Ejecutar cada lunes a las 06:00 UTC
+  workflow_dispatch:         # Permite ejecutarlo manualmente desde la pestaña "Actions"
 
 jobs:
   run-pipeline:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Clona el repositorio
       - name: 📥 Checkout repo
         uses: actions/checkout@v4
 
+      # 2️⃣ Configura Python
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # 3️⃣ Instala dependencias
       - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # 4️⃣ Crea archivo de credenciales con la API key secreta
+      - name: 🧩 Create credentials.json from secret
+        run: |
+          mkdir -p config
+          echo "{\"api_key\": \"${{ secrets.API_FOOTBALL_KEY }}\"}" > config/credentials.json
+        shell: bash
+
+      # 5️⃣ Ejecuta el pipeline completo
       - name: ⚙️ Run ML pipeline
         run: |
           echo "🚀 Starting automated Football ML pipeline..."
@@ -34,6 +45,7 @@ jobs:
           python3 scripts/06_evaluate_models.py
           echo "✅ Pipeline completed successfully!"
 
+      # 6️⃣ Guarda logs y modelos actualizados
       - name: 💾 Commit updated logs and models
         run: |
           git config user.name "github-actions[bot]"
