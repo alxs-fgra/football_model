@@ -1,119 +1,174 @@
 import os
 import pandas as pd
-import joblib
+import numpy as np
 from datetime import datetime
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-from sklearn.impute import SimpleImputer
-import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from catboost import CatBoostClassifier
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# =====================================================
-# 🔧 CONFIGURACIÓN GENERAL
-# =====================================================
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DATA_DIR = os.path.join(REPO_ROOT, "data", "processed")
-MODEL_DIR = os.path.join(REPO_ROOT, "models")
-LOGS_DIR = os.path.join(REPO_ROOT, "logs")
+# ==========================================
+# CONFIGURACIÓN GENERAL
+# ==========================================
+DATA_PATH = "data/processed/features_with_targets_20251023_161723.csv"
+MODELS_DIR = "models"
+REPORTS_DIR = "reports"
+LOGS_PATH = "logs/model_training_log.csv"
 
-os.makedirs(MODEL_DIR, exist_ok=True)
-os.makedirs(LOGS_DIR, exist_ok=True)
+os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs(REPORTS_DIR, exist_ok=True)
+os.makedirs("logs", exist_ok=True)
 
-LOG_FILE = os.path.join(LOGS_DIR, "model_training_log.csv")
-
-# =====================================================
-# 📦 FUNCIONES AUXILIARES
-# =====================================================
-def log(msg):
+# ==========================================
+# FUNCIONES AUXILIARES
+# ==========================================
+def log_message(msg):
     print(msg)
 
-def get_latest_dataset():
-    csv_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".csv")]
-    if not csv_files:
-        raise FileNotFoundError(f"❌ No CSV found in {DATA_DIR}\nAvailable: {os.listdir(DATA_DIR)}")
-    latest = max(csv_files, key=lambda f: os.path.getmtime(os.path.join(DATA_DIR, f)))
-    latest_path = os.path.join(DATA_DIR, latest)
-    log(f"📂 Using dataset: {latest_path}")
-    return latest_path
+def plot_feature_importance(importances, feature_names, model_name, target):
+    plt.figure(figsize=(10, 6))
+    idx = np.argsort(importances)[::-1]
+    plt.bar(range(len(importances)), importances[idx])
+    plt.xticks(range(len(importances)), np.array(feature_names)[idx], rotation=45, ha="right")
+    plt.title(f"Feature Importance: {model_name} ({target})")
+    plt.tight_layout()
+    filename = f"{REPORTS_DIR}/feature_importance_{target}_{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    plt.savefig(filename)
+    plt.close()
+    return filename
 
-def save_metrics(model_name, accuracy, precision, recall, f1):
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    row = f"{ts},{model_name},{accuracy:.3f},{precision:.3f},{recall:.3f},{f1:.3f},{os.path.basename(DATA_PATH)}\n"
-    header = "timestamp,model,accuracy,precision,recall,f1,dataset\n"
-    write_header = not os.path.exists(LOG_FILE)
-    with open(LOG_FILE, "a") as f:
-        if write_header:
-            f.write(header)
-        f.write(row)
 
-# =====================================================
-# ⚙️ ENTRENAMIENTO
-# =====================================================
-def train_and_evaluate(df, target_col, model_name):
-    log(f"\n🏟️ Training model for: {model_name.upper()}")
+def save_metrics_to_log(target, model_name, y_true, y_pred):
+    accuracy = accuracy_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred, average="weighted", zero_division=0)
+    recall = recall_score(y_true, y_pred, average="weighted", zero_division=0)
+    f1 = f1_score(y_true, y_pred, average="weighted", zero_division=0)
+    cm = confusion_matrix(y_true, y_pred)
 
-    # Features (evitamos fuga de datos)
-    drop_cols = ["date", "home_team", "away_team", "winner", "league"]
-    features = [c for c in df.columns if c not in drop_cols + ["result", "btts", "over_2.5"]]
-    log(f"✅ Selected {len(features)} valid features (no leakage): {features}")
+    log_entry = pd.DataFrame([{
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "target": target,
+        "model": model_name,
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1
+    }])
 
-    X = df[features]
-    y = df[target_col]
-
-    # Imputación + Escalado
-    imputer = SimpleImputer(strategy="median")
-    X = imputer.fit_transform(X)
-    scaler = StandardScaler()
-    X = scaler.fit_transform(X)
-
-    # Split + Entrenamiento
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-    model = RandomForestClassifier(n_estimators=150, random_state=42)
-    model.fit(X_train, y_train)
-
-    # Predicción
-    y_pred = model.predict(X_test)
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred, average="weighted", zero_division=0)
-    rec = recall_score(y_test, y_pred, average="weighted", zero_division=0)
-    f1 = f1_score(y_test, y_pred, average="weighted", zero_division=0)
-
-    # Métricas
-    log(f"\n📊 [{model_name}] Metrics:")
-    log(f"   - Accuracy : {acc:.3f}")
-    log(f"   - Precision: {prec:.3f}")
-    log(f"   - Recall   : {rec:.3f}")
-    log(f"   - F1 Score : {f1:.3f}")
-    cm = confusion_matrix(y_test, y_pred)
-    log(f"   - Confusion Matrix:\n{cm}")
-
-    # Guardar modelo y métricas
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_path = os.path.join(MODEL_DIR, f"{model_name}_model_{ts}.pkl")
-    joblib.dump(model, model_path)
-    log(f"💾 Model saved: {model_path}")
-    save_metrics(model_name, acc, prec, rec, f1)
-
-# =====================================================
-# 🚀 MAIN
-# =====================================================
-if __name__ == "__main__":
-    DATA_PATH = get_latest_dataset()
-    df = pd.read_csv(DATA_PATH)
-
-    expected_targets = ["result", "btts", "over_2.5"]
-    missing = [col for col in expected_targets if col not in df.columns]
-    if missing:
-        log(f"❌ Missing target columns: {missing}")
-        exit(1)
+    if os.path.exists(LOGS_PATH):
+        log_entry.to_csv(LOGS_PATH, mode="a", header=False, index=False)
     else:
-        log("✅ All target columns found in dataset.")
+        log_entry.to_csv(LOGS_PATH, index=False)
 
-    # Entrenamos modelos para los tres mercados
-    train_and_evaluate(df, "result", "1x2")
-    train_and_evaluate(df, "btts", "btts")
-    train_and_evaluate(df, "over_2.5", "over_2.5")
+    return accuracy, precision, recall, f1, cm
 
-    log("\n✅ Training completed successfully!")
-    log(f"📊 Metrics logged in: {LOG_FILE}")
+
+# ==========================================
+# CARGAR DATASET
+# ==========================================
+print("🚀 Starting model training pipeline...")
+
+if not os.path.exists(DATA_PATH):
+    raise FileNotFoundError(f"❌ Dataset not found: {DATA_PATH}")
+
+df = pd.read_csv(DATA_PATH)
+print(f"📂 Loaded dataset: {DATA_PATH}")
+print(f"✅ Dataset loaded successfully: {len(df)} rows, {len(df.columns)} columns")
+
+# ==========================================
+# DEFINIR FEATURES SEGURAS (SIN LEAKAGE)
+# ==========================================
+FEATURES = [
+    "league_id", "season",
+    "home_avg_goals_last5", "home_avg_conceded_last5",
+    "away_avg_goals_last5", "away_avg_conceded_last5",
+    "season_progress", "league"
+]
+
+print(f"✅ Using {len(FEATURES)} clean features: {FEATURES}")
+
+# ==========================================
+# MODEL TRAINING FUNCTION
+# ==========================================
+def train_and_evaluate(df, target):
+    print(f"\n🏟️ Training models for: {target}")
+
+    df_target = df.dropna(subset=[target])
+    print(f"🔎 Checking data for '{target}': {len(df)} → {len(df_target)} valid rows")
+
+    if len(df_target) < 100:
+        print(f"❌ Not enough samples for target '{target}'. Skipping.")
+        return None
+
+    X = df_target[FEATURES]
+    y = df_target[target]
+
+    # Codificar variables categóricas
+    X = pd.get_dummies(X, drop_first=True)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    models = {
+        "XGBoost": XGBClassifier(
+            n_estimators=200, max_depth=6, learning_rate=0.05,
+            subsample=0.8, colsample_bytree=0.8, eval_metric="mlogloss", random_state=42
+        ),
+        "RandomForest": RandomForestClassifier(
+            n_estimators=200, max_depth=8, random_state=42
+        ),
+        "CatBoost": CatBoostClassifier(
+            iterations=300, depth=6, learning_rate=0.05,
+            verbose=0, random_seed=42
+        ),
+    }
+
+    results = []
+    for name, model in models.items():
+        print(f"⚙️ Training {name} for {target}...")
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+
+        accuracy, precision, recall, f1, cm = save_metrics_to_log(target, name, y_test, y_pred)
+        model_filename = f"{MODELS_DIR}/{target.lower()}_{name.lower()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
+        pd.to_pickle(model, model_filename)
+        fi_path = plot_feature_importance(model.feature_importances_, X.columns, name.lower(), target)
+
+        print(f"💾 Model saved: {model_filename}")
+        print(f"📊 Feature importance saved: {fi_path}")
+        print(f"📄 Metrics logged: {LOGS_PATH}")
+
+        results.append({
+            "model": name,
+            "accuracy": round(accuracy, 4),
+            "precision": round(precision, 4),
+            "recall": round(recall, 4),
+            "f1": round(f1, 4)
+        })
+
+    df_results = pd.DataFrame(results)
+    print(f"\n📊 Results for {target}:\n{df_results}\n")
+    return df_results
+
+
+# ==========================================
+# MAIN EXECUTION
+# ==========================================
+all_results = []
+for target in ["result", "btts", "over_2.5"]:
+    result_df = train_and_evaluate(df, target)
+    if result_df is not None:
+        result_df["target"] = target
+        all_results.append(result_df)
+
+if all_results:
+    summary_df = pd.concat(all_results, ignore_index=True)
+    summary_path = f"reports/model_performance_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    summary_df.to_csv(summary_path, index=False)
+    print(f"📊 Summary of all models saved: {summary_path}")
+
+print("✅ Training pipeline finished.")

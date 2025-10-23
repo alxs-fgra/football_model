@@ -31,3 +31,6 @@ reports/
 # Archivos de IDE o editor
 .idea/
 .vscode/
+
+# CatBoost temporary files
+catboost_info/

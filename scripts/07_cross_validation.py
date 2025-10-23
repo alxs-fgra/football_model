@@ -2,98 +2,119 @@ import os
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall_score, f1_score
+from catboost import CatBoostClassifier
 
-# ===============================
-# CONFIG
-# ===============================
-DATA_DIR = "data/processed"
-LOG_DIR = "logs"
-os.makedirs(LOG_DIR, exist_ok=True)
+# ==========================================
+# CONFIGURACIÓN
+# ==========================================
+DATA_PATH = "data/processed/features_with_targets_20251023_164110.csv"
+REPORTS_DIR = "reports"
+LOGS_PATH = "logs/cross_validation_results.csv"
+os.makedirs(REPORTS_DIR, exist_ok=True)
+os.makedirs("logs", exist_ok=True)
 
-def get_latest_dataset():
-    csv_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".csv")]
-    if not csv_files:
-        raise FileNotFoundError(f"No CSV dataset found in {DATA_DIR}")
-    latest = max(csv_files, key=lambda x: os.path.getmtime(os.path.join(DATA_DIR, x)))
-    return os.path.join(DATA_DIR, latest)
+# ==========================================
+# FEATURES LIMPIAS (sin fuga)
+# ==========================================
+FEATURES = [
+    "league_id", "season",
+    "home_avg_goals_last5", "home_avg_conceded_last5",
+    "away_avg_goals_last5", "away_avg_conceded_last5",
+    "season_progress", "league"
+]
 
-def compute_cv_metrics(model, X, y):
-    scoring = {
-        "accuracy": make_scorer(accuracy_score),
-        "precision": make_scorer(precision_score, average="weighted", zero_division=0),
-        "recall": make_scorer(recall_score, average="weighted", zero_division=0),
-        "f1": make_scorer(f1_score, average="weighted", zero_division=0),
+# ==========================================
+# MÉTRICAS AUXILIARES
+# ==========================================
+def evaluate_metrics(y_true, y_pred):
+    return {
+        "accuracy": accuracy_score(y_true, y_pred),
+        "precision": precision_score(y_true, y_pred, average="weighted", zero_division=0),
+        "recall": recall_score(y_true, y_pred, average="weighted", zero_division=0),
+        "f1": f1_score(y_true, y_pred, average="weighted", zero_division=0),
     }
-    kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    results = {metric: np.mean(cross_val_score(model, X, y, cv=kfold, scoring=sc))
-               for metric, sc in scoring.items()}
-    return results
 
-if __name__ == "__main__":
-    dataset_path = get_latest_dataset()
-    print(f"📂 Using dataset: {dataset_path}")
+# ==========================================
+# ENTRENAR Y VALIDAR CON K-FOLD
+# ==========================================
+def cross_validate_model(model_name, model, X, y, target, n_splits=5):
+    print(f"\n🔁 Cross-validating {model_name} for target '{target}'...")
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
 
-    df = pd.read_csv(dataset_path)
+    fold_metrics = []
+    for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
+        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
 
-    expected_targets = ["result", "btts", "over_2.5"]
-    for col in expected_targets:
-        if col not in df.columns:
-            raise ValueError(f"Missing target column: {col}")
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
 
-    # Detect and remove leakage columns
-    leakage_cols = [c for c in ["goals_home", "goals_away", "total_goals"] if c in df.columns]
-    if leakage_cols:
-        print(f"⚠️ Detected potential leakage columns: {leakage_cols}")
+        metrics = evaluate_metrics(y_test, y_pred)
+        metrics["fold"] = fold
+        metrics["model"] = model_name
+        metrics["target"] = target
+        fold_metrics.append(metrics)
 
-    # Drop non-numeric text-based columns that are identifiers
-    drop_cols = ["date", "home_team", "away_team"]
-    df = df.drop(columns=[c for c in drop_cols if c in df.columns])
+        print(f"   Fold {fold}/{n_splits} - Acc: {metrics['accuracy']:.3f} | F1: {metrics['f1']:.3f}")
 
-    # Label encode all remaining object (string) columns
-    for col in df.select_dtypes(include=["object"]).columns:
-        df[col] = LabelEncoder().fit_transform(df[col].astype(str))
-        print(f"🔤 Encoded column: {col}")
+    df = pd.DataFrame(fold_metrics)
+    df["accuracy_mean"] = df["accuracy"].mean()
+    df["f1_mean"] = df["f1"].mean()
+    return df
 
-    # Define features
-    base_features = [c for c in df.columns if c not in expected_targets + leakage_cols]
-    print(f"✅ Using {len(base_features)} features: {base_features}")
+# ==========================================
+# PIPELINE PRINCIPAL
+# ==========================================
+print("🚀 Starting cross-validation pipeline...")
+df = pd.read_csv(DATA_PATH)
+print(f"📂 Loaded dataset: {len(df)} rows, {len(df.columns)} columns")
 
-    results = []
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+results_all = []
 
-    for target in expected_targets:
-        print(f"\n🏟️ Cross-validating for target: {target.upper()}")
-        X = df[base_features]
-        y = df[target]
+for target in ["result", "btts", "over_2.5"]:
+    df_target = df.dropna(subset=[target])
+    X = pd.get_dummies(df_target[FEATURES], drop_first=True)
+    y = df_target[target]
 
-        preprocessor = ColumnTransformer([
-            ("num", SimpleImputer(strategy="most_frequent"), X.columns)
-        ])
+    models = {
+        "XGBoost": XGBClassifier(
+            n_estimators=200, max_depth=6, learning_rate=0.05,
+            subsample=0.8, colsample_bytree=0.8, eval_metric="mlogloss", random_state=42
+        ),
+        "RandomForest": RandomForestClassifier(
+            n_estimators=200, max_depth=8, random_state=42
+        ),
+        "CatBoost": CatBoostClassifier(
+            iterations=300, depth=6, learning_rate=0.05,
+            verbose=0, random_seed=42
+        ),
+    }
 
-        pipeline = Pipeline([
-            ("preprocess", preprocessor),
-            ("scaler", StandardScaler()),
-            ("model", RandomForestClassifier(n_estimators=200, random_state=42))
-        ])
+    for name, model in models.items():
+        df_metrics = cross_validate_model(name, model, X, y, target)
+        results_all.append(df_metrics)
 
-        metrics = compute_cv_metrics(pipeline, X, y)
-        print(f"📊 [{target}] Mean Metrics (5-Fold):")
-        for k, v in metrics.items():
-            print(f"   - {k.capitalize():9}: {v:.3f}")
+# ==========================================
+# GUARDAR RESULTADOS
+# ==========================================
+summary_df = pd.concat(results_all, ignore_index=True)
+summary_csv = f"{REPORTS_DIR}/cross_validation_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+summary_df.to_csv(summary_csv, index=False)
 
-        results.append({"target": target, **metrics})
+# También guardar promedios por modelo
+avg_df = (
+    summary_df.groupby(["target", "model"])
+    [["accuracy", "precision", "recall", "f1"]]
+    .mean()
+    .reset_index()
+)
+avg_csv = f"{REPORTS_DIR}/cross_validation_avg_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+avg_df.to_csv(avg_csv, index=False)
 
-    results_df = pd.DataFrame(results)
-    output_path = os.path.join(LOG_DIR, f"cross_validation_results_{timestamp}.csv")
-    results_df.to_csv(output_path, index=False)
-
-    print(f"\n💾 Cross-validation results saved → {output_path}")
-    print("\n🏁 Final Cross-validation Summary:")
-    print(results_df.round(3))
+print("\n✅ Cross-validation finished!")
+print(f"📄 Detailed fold metrics: {summary_csv}")
+print(f"📊 Averages per model: {avg_csv}")
