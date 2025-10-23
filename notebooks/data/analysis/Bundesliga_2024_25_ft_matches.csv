@@ -1,0 +1,64 @@
+fixture_id,date,league,season,home_team,away_team,goals_home,goals_away,status,total_goals,result
+1388310,2025-08-24 15:30:00+00:00,Bundesliga,2025,Borussia Mönchengladbach,Hamburger SV,0,0,FT,0,Draw
+1388351,2025-09-28 17:30:00+00:00,Bundesliga,2025,Union Berlin,Hamburger SV,0,0,FT,0,Draw
+1388355,2025-10-05 17:30:00+00:00,Bundesliga,2025,Borussia Mönchengladbach,SC Freiburg,0,0,FT,0,Draw
+1388314,2025-08-24 13:30:00+00:00,Bundesliga,2025,FSV Mainz 05,1.FC Köln,0,1,FT,1,Away Win
+1388331,2025-09-13 13:30:00+00:00,Bundesliga,2025,FSV Mainz 05,RB Leipzig,0,1,FT,1,Away Win
+1388352,2025-09-27 13:30:00+00:00,Bundesliga,2025,VfL Wolfsburg,RB Leipzig,0,1,FT,1,Away Win
+1388359,2025-10-03 18:30:00+00:00,Bundesliga,2025,1899 Hoffenheim,1.FC Köln,0,1,FT,1,Away Win
+1388320,2025-08-29 18:30:00+00:00,Bundesliga,2025,Hamburger SV,FC St. Pauli,0,2,FT,2,Away Win
+1388330,2025-09-13 13:30:00+00:00,Bundesliga,2025,1. FC Heidenheim,Borussia Dortmund,0,2,FT,2,Away Win
+1388349,2025-09-27 13:30:00+00:00,Bundesliga,2025,FSV Mainz 05,Borussia Dortmund,0,2,FT,2,Away Win
+1388343,2025-09-20 13:30:00+00:00,Bundesliga,2025,Werder Bremen,SC Freiburg,0,3,FT,3,Away Win
+1388357,2025-10-04 16:30:00+00:00,Bundesliga,2025,Eintracht Frankfurt,Bayern München,0,3,FT,3,Away Win
+1388370,2025-10-18 13:30:00+00:00,Bundesliga,2025,VfL Wolfsburg,VfB Stuttgart,0,3,FT,3,Away Win
+1388368,2025-10-19 15:30:00+00:00,Bundesliga,2025,FC St. Pauli,1899 Hoffenheim,0,3,FT,3,Away Win
+1388328,2025-09-14 15:30:00+00:00,Bundesliga,2025,Borussia Mönchengladbach,Werder Bremen,0,4,FT,4,Away Win
+1388323,2025-08-30 13:30:00+00:00,Bundesliga,2025,VfB Stuttgart,Borussia Mönchengladbach,1,0,FT,1,Home Win
+1388337,2025-09-21 17:30:00+00:00,Bundesliga,2025,Borussia Dortmund,VfL Wolfsburg,1,0,FT,1,Home Win
+1388361,2025-10-04 13:30:00+00:00,Bundesliga,2025,Werder Bremen,FC St. Pauli,1,0,FT,1,Home Win
+1388360,2025-10-05 13:30:00+00:00,Bundesliga,2025,VfB Stuttgart,1. FC Heidenheim,1,0,FT,1,Home Win
+1388325,2025-08-31 13:30:00+00:00,Bundesliga,2025,VfL Wolfsburg,FSV Mainz 05,1,1,FT,2,Draw
+1388336,2025-09-21 15:30:00+00:00,Bundesliga,2025,Bayer Leverkusen,Borussia Mönchengladbach,1,1,FT,2,Draw
+1388347,2025-09-28 13:30:00+00:00,Bundesliga,2025,SC Freiburg,1899 Hoffenheim,1,1,FT,2,Draw
+1388356,2025-10-04 13:30:00+00:00,Bundesliga,2025,Borussia Dortmund,RB Leipzig,1,1,FT,2,Draw
+1388363,2025-10-18 13:30:00+00:00,Bundesliga,2025,1.FC Köln,FC Augsburg,1,1,FT,2,Draw
+1388309,2025-08-23 13:30:00+00:00,Bundesliga,2025,Bayer Leverkusen,1899 Hoffenheim,1,2,FT,3,Away Win
+1388350,2025-09-27 13:30:00+00:00,Bundesliga,2025,FC St. Pauli,Bayer Leverkusen,1,2,FT,3,Away Win
+1388346,2025-09-28 15:30:00+00:00,Bundesliga,2025,1.FC Köln,VfB Stuttgart,1,2,FT,3,Away Win
+1388312,2025-08-23 13:30:00+00:00,Bundesliga,2025,SC Freiburg,FC Augsburg,1,3,FT,4,Away Win
+1388313,2025-08-23 13:30:00+00:00,Bundesliga,2025,1. FC Heidenheim,VfL Wolfsburg,1,3,FT,4,Away Win
+1388321,2025-08-30 13:30:00+00:00,Bundesliga,2025,1899 Hoffenheim,Eintracht Frankfurt,1,3,FT,4,Away Win
+1388340,2025-09-20 13:30:00+00:00,Bundesliga,2025,1899 Hoffenheim,Bayern München,1,4,FT,5,Away Win
+1388335,2025-09-20 13:30:00+00:00,Bundesliga,2025,FC Augsburg,FSV Mainz 05,1,4,FT,5,Away Win
+1388322,2025-08-30 13:30:00+00:00,Bundesliga,2025,RB Leipzig,1. FC Heidenheim,2,0,FT,2,Home Win
+1388342,2025-09-19 18:30:00+00:00,Bundesliga,2025,VfB Stuttgart,FC St. Pauli,2,0,FT,2,Home Win
+1388354,2025-10-04 13:30:00+00:00,Bundesliga,2025,Bayer Leverkusen,Union Berlin,2,0,FT,2,Home Win
+1388316,2025-08-23 13:30:00+00:00,Bundesliga,2025,Union Berlin,VfB Stuttgart,2,1,FT,3,Home Win
+1388332,2025-09-14 13:30:00+00:00,Bundesliga,2025,FC St. Pauli,FC Augsburg,2,1,FT,3,Home Win
+1388339,2025-09-20 13:30:00+00:00,Bundesliga,2025,Hamburger SV,1. FC Heidenheim,2,1,FT,3,Home Win
+1388348,2025-09-27 13:30:00+00:00,Bundesliga,2025,1. FC Heidenheim,FC Augsburg,2,1,FT,3,Home Win
+1388367,2025-10-18 13:30:00+00:00,Bundesliga,2025,RB Leipzig,Hamburger SV,2,1,FT,3,Home Win
+1388362,2025-10-18 16:30:00+00:00,Bundesliga,2025,Bayern München,Borussia Dortmund,2,1,FT,3,Home Win
+1388365,2025-10-18 13:30:00+00:00,Bundesliga,2025,1. FC Heidenheim,Werder Bremen,2,2,FT,4,Draw
+1388364,2025-10-19 13:30:00+00:00,Bundesliga,2025,SC Freiburg,Eintracht Frankfurt,2,2,FT,4,Draw
+1388317,2025-08-30 16:30:00+00:00,Bundesliga,2025,FC Augsburg,Bayern München,2,3,FT,5,Away Win
+1388333,2025-09-13 13:30:00+00:00,Bundesliga,2025,Union Berlin,1899 Hoffenheim,2,4,FT,6,Away Win
+1388318,2025-08-31 15:30:00+00:00,Bundesliga,2025,Borussia Dortmund,Union Berlin,3,0,FT,3,Home Win
+1388326,2025-09-12 18:30:00+00:00,Bundesliga,2025,Bayer Leverkusen,Eintracht Frankfurt,3,1,FT,4,Home Win
+1388329,2025-09-13 13:30:00+00:00,Bundesliga,2025,SC Freiburg,VfB Stuttgart,3,1,FT,4,Home Win
+1388341,2025-09-20 16:30:00+00:00,Bundesliga,2025,RB Leipzig,1.FC Köln,3,1,FT,4,Home Win
+1388353,2025-10-04 13:30:00+00:00,Bundesliga,2025,FC Augsburg,VfL Wolfsburg,3,1,FT,4,Home Win
+1388369,2025-10-17 18:30:00+00:00,Bundesliga,2025,Union Berlin,Borussia Mönchengladbach,3,1,FT,4,Home Win
+1388315,2025-08-23 16:30:00+00:00,Bundesliga,2025,FC St. Pauli,Borussia Dortmund,3,3,FT,6,Draw
+1388324,2025-08-30 13:30:00+00:00,Bundesliga,2025,Werder Bremen,Bayer Leverkusen,3,3,FT,6,Draw
+1388334,2025-09-13 13:30:00+00:00,Bundesliga,2025,VfL Wolfsburg,1.FC Köln,3,3,FT,6,Draw
+1388338,2025-09-21 13:30:00+00:00,Bundesliga,2025,Eintracht Frankfurt,Union Berlin,3,4,FT,7,Away Win
+1388366,2025-10-18 13:30:00+00:00,Bundesliga,2025,FSV Mainz 05,Bayer Leverkusen,3,4,FT,7,Away Win
+1388344,2025-09-26 18:30:00+00:00,Bundesliga,2025,Bayern München,Werder Bremen,4,0,FT,4,Home Win
+1388358,2025-10-05 15:30:00+00:00,Bundesliga,2025,Hamburger SV,FSV Mainz 05,4,0,FT,4,Home Win
+1388311,2025-08-23 13:30:00+00:00,Bundesliga,2025,Eintracht Frankfurt,Werder Bremen,4,1,FT,5,Home Win
+1388319,2025-08-31 17:30:00+00:00,Bundesliga,2025,1.FC Köln,SC Freiburg,4,1,FT,5,Home Win
+1388345,2025-09-27 16:30:00+00:00,Bundesliga,2025,Borussia Mönchengladbach,Eintracht Frankfurt,4,6,FT,10,Away Win
+1388327,2025-09-13 16:30:00+00:00,Bundesliga,2025,Bayern München,Hamburger SV,5,0,FT,5,Home Win
+1388308,2025-08-22 18:30:00+00:00,Bundesliga,2025,Bayern München,RB Leipzig,6,0,FT,6,Home Win

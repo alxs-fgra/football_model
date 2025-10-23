@@ -1,0 +1,381 @@
+fixture_id,date,league,season,home_team,away_team,goals_home,goals_away,status,total_goals,result
+1035355,2023-12-28 20:15:00+00:00,Premier League,2023,Arsenal,West Ham,0,2,FT,2,Away Win
+1035495,2024-04-14 15:30:00+00:00,Premier League,2023,Arsenal,Aston Villa,0,2,FT,2,Away Win
+1035446,2024-03-10 13:00:00+00:00,Premier League,2023,Aston Villa,Tottenham,0,4,FT,4,Away Win
+1035057,2023-08-26 11:30:00+00:00,Premier League,2023,Bournemouth,Tottenham,0,2,FT,2,Away Win
+1035077,2023-09-17 13:00:00+00:00,Premier League,2023,Bournemouth,Chelsea,0,0,FT,0,Draw
+1035097,2023-09-30 14:00:00+00:00,Premier League,2023,Bournemouth,Arsenal,0,4,FT,4,Away Win
+1035374,2024-01-21 16:30:00+00:00,Premier League,2023,Bournemouth,Liverpool,0,4,FT,4,Away Win
+1035424,2024-02-24 17:30:00+00:00,Premier League,2023,Bournemouth,Manchester City,0,1,FT,1,Away Win
+1035294,2023-11-25 17:30:00+00:00,Premier League,2023,Brentford,Arsenal,0,1,FT,1,Away Win
+1035476,2024-04-03 18:30:00+00:00,Premier League,2023,Brentford,Brighton,0,0,FT,0,Draw
+1035525,2024-05-04 14:00:00+00:00,Premier League,2023,Brentford,Fulham,0,0,FT,0,Draw
+1035377,2024-01-22 19:45:00+00:00,Premier League,2023,Brighton,Wolves,0,0,FT,0,Draw
+1035485,2024-04-06 16:30:00+00:00,Premier League,2023,Brighton,Arsenal,0,3,FT,3,Away Win
+1035455,2024-04-25 19:00:00+00:00,Premier League,2023,Brighton,Manchester City,0,4,FT,4,Away Win
+1035546,2024-05-19 15:00:00+00:00,Premier League,2023,Brighton,Manchester United,0,2,FT,2,Away Win
+1035037,2023-08-11 19:00:00+00:00,Premier League,2023,Burnley,Manchester City,0,3,FT,3,Away Win
+1035090,2023-09-23 19:00:00+00:00,Premier League,2023,Burnley,Manchester United,0,1,FT,1,Away Win
+1035138,2023-11-04 15:00:00+00:00,Premier League,2023,Burnley,Crystal Palace,0,2,FT,2,Away Win
+1035337,2023-12-16 17:30:00+00:00,Premier League,2023,Burnley,Everton,0,2,FT,2,Away Win
+1035358,2023-12-26 17:30:00+00:00,Premier League,2023,Burnley,Liverpool,0,2,FT,2,Away Win
+1035415,2024-02-17 15:00:00+00:00,Premier League,2023,Burnley,Arsenal,0,5,FT,5,Away Win
+1035435,2024-03-03 13:00:00+00:00,Premier League,2023,Burnley,Bournemouth,0,2,FT,2,Away Win
+1035071,2023-09-02 14:00:00+00:00,Premier League,2023,Chelsea,Nottingham Forest,0,1,FT,1,Away Win
+1035091,2023-09-24 13:00:00+00:00,Premier League,2023,Chelsea,Aston Villa,0,1,FT,1,Away Win
+1035131,2023-10-28 11:30:00+00:00,Premier League,2023,Chelsea,Brentford,0,2,FT,2,Away Win
+1035048,2023-08-21 19:00:00+00:00,Premier League,2023,Crystal Palace,Arsenal,0,1,FT,1,Away Win
+1035092,2023-09-23 14:00:00+00:00,Premier League,2023,Crystal Palace,Fulham,0,0,FT,0,Draw
+1035110,2023-10-07 16:30:00+00:00,Premier League,2023,Crystal Palace,Nottingham Forest,0,0,FT,0,Draw
+1035322,2023-12-06 19:30:00+00:00,Premier League,2023,Crystal Palace,Bournemouth,0,2,FT,2,Away Win
+1035041,2023-08-12 14:00:00+00:00,Premier League,2023,Everton,Fulham,0,1,FT,1,Away Win
+1035063,2023-08-26 14:00:00+00:00,Premier League,2023,Everton,Wolves,0,1,FT,1,Away Win
+1035079,2023-09-17 15:30:00+00:00,Premier League,2023,Everton,Arsenal,0,1,FT,1,Away Win
+1035296,2023-11-26 16:30:00+00:00,Premier League,2023,Everton,Manchester United,0,3,FT,3,Away Win
+1035380,2024-01-14 14:00:00+00:00,Premier League,2023,Everton,Aston Villa,0,0,FT,0,Draw
+1035049,2023-08-19 14:00:00+00:00,Premier League,2023,Fulham,Brentford,0,3,FT,3,Away Win
+1035100,2023-10-02 19:00:00+00:00,Premier League,2023,Fulham,Chelsea,0,2,FT,2,Away Win
+1035140,2023-11-04 12:30:00+00:00,Premier League,2023,Fulham,Manchester United,0,1,FT,1,Away Win
+1035346,2023-12-23 15:00:00+00:00,Premier League,2023,Fulham,Burnley,0,2,FT,2,Away Win
+1035385,2024-01-30 19:45:00+00:00,Premier League,2023,Fulham,Everton,0,0,FT,0,Draw
+1035488,2024-04-06 14:00:00+00:00,Premier League,2023,Fulham,Newcastle,0,1,FT,1,Away Win
+1035537,2024-05-11 11:30:00+00:00,Premier League,2023,Fulham,Manchester City,0,4,FT,4,Away Win
+1035339,2023-12-17 16:30:00+00:00,Premier League,2023,Liverpool,Manchester United,0,0,FT,0,Draw
+1035499,2024-04-14 13:00:00+00:00,Premier League,2023,Liverpool,Crystal Palace,0,1,FT,1,Away Win
+1035113,2023-10-07 11:30:00+00:00,Premier League,2023,Luton,Tottenham,0,1,FT,1,Away Win
+1035469,2024-03-31 15:30:00+00:00,Premier League,2023,Manchester City,Arsenal,0,0,FT,0,Draw
+1035101,2023-09-30 14:00:00+00:00,Premier League,2023,Manchester United,Crystal Palace,0,1,FT,1,Away Win
+1035134,2023-10-29 15:30:00+00:00,Premier League,2023,Manchester United,Manchester City,0,3,FT,3,Away Win
+1035330,2023-12-09 15:00:00+00:00,Premier League,2023,Manchester United,Bournemouth,0,3,FT,3,Away Win
+1035538,2024-05-12 15:30:00+00:00,Premier League,2023,Manchester United,Arsenal,0,1,FT,1,Away Win
+1035312,2023-12-02 17:30:00+00:00,Premier League,2023,Nottingham Forest,Everton,0,1,FT,1,Away Win
+1035342,2023-12-15 20:00:00+00:00,Premier League,2023,Nottingham Forest,Tottenham,0,2,FT,2,Away Win
+1035441,2024-03-02 15:00:00+00:00,Premier League,2023,Nottingham Forest,Liverpool,0,1,FT,1,Away Win
+1035520,2024-04-28 15:30:00+00:00,Premier League,2023,Nottingham Forest,Manchester City,0,2,FT,2,Away Win
+1035042,2023-08-12 14:00:00+00:00,Premier League,2023,Sheffield Utd,Crystal Palace,0,1,FT,1,Away Win
+1035096,2023-09-24 15:30:00+00:00,Premier League,2023,Sheffield Utd,Newcastle,0,8,FT,8,Away Win
+1035319,2023-12-06 19:30:00+00:00,Premier League,2023,Sheffield Utd,Liverpool,0,2,FT,2,Away Win
+1035403,2024-02-03 17:30:00+00:00,Premier League,2023,Sheffield Utd,Aston Villa,0,5,FT,5,Away Win
+1035422,2024-02-18 14:00:00+00:00,Premier League,2023,Sheffield Utd,Brighton,0,5,FT,5,Away Win
+1035442,2024-03-04 20:00:00+00:00,Premier League,2023,Sheffield Utd,Arsenal,0,6,FT,6,Away Win
+1035553,2024-05-19 15:00:00+00:00,Premier League,2023,Sheffield Utd,Tottenham,0,3,FT,3,Away Win
+1035512,2024-05-14 19:00:00+00:00,Premier League,2023,Tottenham,Manchester City,0,2,FT,2,Away Win
+1035135,2023-10-29 13:00:00+00:00,Premier League,2023,West Ham,Everton,0,1,FT,1,Away Win
+1035372,2024-01-02 19:30:00+00:00,Premier League,2023,West Ham,Brighton,0,0,FT,0,Draw
+1035412,2024-02-11 14:00:00+00:00,Premier League,2023,West Ham,Arsenal,0,6,FT,6,Away Win
+1035503,2024-04-14 13:00:00+00:00,Premier League,2023,West Ham,Fulham,0,2,FT,2,Away Win
+1035413,2024-02-10 15:00:00+00:00,Premier League,2023,Wolves,Brentford,0,2,FT,2,Away Win
+1035513,2024-04-20 18:30:00+00:00,Premier League,2023,Wolves,Arsenal,0,2,FT,2,Away Win
+1035463,2024-04-24 18:45:00+00:00,Premier League,2023,Wolves,Bournemouth,0,1,FT,1,Away Win
+1035107,2023-10-08 15:30:00+00:00,Premier League,2023,Arsenal,Manchester City,1,0,FT,1,Home Win
+1035314,2023-12-06 20:15:00+00:00,Premier League,2023,Aston Villa,Manchester City,1,0,FT,1,Home Win
+1035324,2023-12-09 17:30:00+00:00,Premier League,2023,Aston Villa,Arsenal,1,0,FT,1,Home Win
+1035344,2023-12-22 20:00:00+00:00,Premier League,2023,Aston Villa,Sheffield Utd,1,1,FT,2,Draw
+1035384,2024-01-30 20:15:00+00:00,Premier League,2023,Aston Villa,Newcastle,1,3,FT,4,Away Win
+1035404,2024-02-11 16:30:00+00:00,Premier League,2023,Aston Villa,Manchester United,1,2,FT,3,Away Win
+1035039,2023-08-12 14:00:00+00:00,Premier League,2023,Bournemouth,West Ham,1,1,FT,2,Draw
+1035117,2023-10-21 14:00:00+00:00,Premier League,2023,Bournemouth,Wolves,1,2,FT,3,Away Win
+1035394,2024-02-04 14:00:00+00:00,Premier League,2023,Bournemouth,Nottingham Forest,1,1,FT,2,Draw
+1035474,2024-04-02 18:45:00+00:00,Premier League,2023,Bournemouth,Crystal Palace,1,0,FT,1,Home Win
+1035534,2024-05-11 14:00:00+00:00,Premier League,2023,Bournemouth,Brentford,1,2,FT,3,Away Win
+1035059,2023-08-26 14:00:00+00:00,Premier League,2023,Brentford,Crystal Palace,1,1,FT,2,Draw
+1035088,2023-09-23 16:30:00+00:00,Premier League,2023,Brentford,Everton,1,3,FT,4,Away Win
+1035336,2023-12-17 14:00:00+00:00,Premier League,2023,Brentford,Aston Villa,1,2,FT,3,Away Win
+1035356,2023-12-27 19:30:00+00:00,Premier League,2023,Brentford,Wolves,1,4,FT,5,Away Win
+1035396,2024-02-05 20:00:00+00:00,Premier League,2023,Brentford,Manchester City,1,3,FT,4,Away Win
+1035414,2024-02-17 12:30:00+00:00,Premier League,2023,Brentford,Liverpool,1,4,FT,5,Away Win
+1035466,2024-03-30 20:00:00+00:00,Premier League,2023,Brentford,Manchester United,1,1,FT,2,Draw
+1035060,2023-08-26 16:30:00+00:00,Premier League,2023,Brighton,West Ham,1,3,FT,4,Away Win
+1035130,2023-10-29 14:00:00+00:00,Premier League,2023,Brighton,Fulham,1,1,FT,2,Draw
+1035150,2023-11-12 14:00:00+00:00,Premier League,2023,Brighton,Sheffield Utd,1,1,FT,2,Draw
+1035325,2023-12-09 15:00:00+00:00,Premier League,2023,Brighton,Burnley,1,1,FT,2,Draw
+1035427,2024-02-24 15:00:00+00:00,Premier League,2023,Brighton,Everton,1,1,FT,2,Draw
+1035447,2024-03-10 14:00:00+00:00,Premier League,2023,Brighton,Nottingham Forest,1,0,FT,1,Home Win
+1035526,2024-05-05 13:00:00+00:00,Premier League,2023,Brighton,Aston Villa,1,0,FT,1,Home Win
+1035505,2024-05-15 18:45:00+00:00,Premier League,2023,Brighton,Chelsea,1,2,FT,3,Away Win
+1035061,2023-08-27 13:00:00+00:00,Premier League,2023,Burnley,Aston Villa,1,3,FT,4,Away Win
+1035109,2023-10-07 14:00:00+00:00,Premier League,2023,Burnley,Chelsea,1,4,FT,5,Away Win
+1035295,2023-11-25 15:00:00+00:00,Premier League,2023,Burnley,West Ham,1,2,FT,3,Away Win
+1035378,2024-01-12 19:45:00+00:00,Premier League,2023,Burnley,Luton,1,1,FT,2,Draw
+1035477,2024-04-02 18:45:00+00:00,Premier League,2023,Burnley,Wolves,1,1,FT,2,Draw
+1035497,2024-04-13 14:00:00+00:00,Premier League,2023,Burnley,Brighton,1,1,FT,2,Draw
+1035527,2024-05-04 14:00:00+00:00,Premier League,2023,Burnley,Newcastle,1,4,FT,5,Away Win
+1035547,2024-05-19 15:00:00+00:00,Premier League,2023,Burnley,Nottingham Forest,1,2,FT,3,Away Win
+1035045,2023-08-13 15:30:00+00:00,Premier League,2023,Chelsea,Liverpool,1,1,FT,2,Draw
+1035379,2024-01-13 12:30:00+00:00,Premier League,2023,Chelsea,Fulham,1,0,FT,1,Home Win
+1035132,2023-10-27 19:00:00+00:00,Premier League,2023,Crystal Palace,Tottenham,1,2,FT,3,Away Win
+1035326,2023-12-09 12:30:00+00:00,Premier League,2023,Crystal Palace,Liverpool,1,2,FT,3,Away Win
+1035345,2023-12-21 20:00:00+00:00,Premier League,2023,Crystal Palace,Brighton,1,1,FT,2,Draw
+1035405,2024-02-12 20:00:00+00:00,Premier League,2023,Crystal Palace,Chelsea,1,3,FT,4,Away Win
+1035449,2024-03-09 15:00:00+00:00,Premier League,2023,Crystal Palace,Luton,1,1,FT,2,Draw
+1035099,2023-09-30 14:00:00+00:00,Premier League,2023,Everton,Luton,1,2,FT,3,Away Win
+1035139,2023-11-04 15:00:00+00:00,Premier League,2023,Everton,Brighton,1,1,FT,2,Draw
+1035360,2023-12-27 20:15:00+00:00,Premier League,2023,Everton,Manchester City,1,3,FT,4,Away Win
+1035416,2024-02-19 20:00:00+00:00,Premier League,2023,Everton,Crystal Palace,1,1,FT,2,Draw
+1035436,2024-03-02 15:00:00+00:00,Premier League,2023,Everton,West Ham,1,3,FT,4,Away Win
+1035487,2024-04-06 14:00:00+00:00,Premier League,2023,Everton,Burnley,1,0,FT,1,Home Win
+1035516,2024-04-27 16:30:00+00:00,Premier League,2023,Everton,Brentford,1,0,FT,1,Home Win
+1035536,2024-05-11 14:00:00+00:00,Premier League,2023,Everton,Sheffield Utd,1,0,FT,1,Home Win
+1035080,2023-09-16 14:00:00+00:00,Premier League,2023,Fulham,Luton,1,0,FT,1,Home Win
+1035417,2024-02-17 15:00:00+00:00,Premier League,2023,Fulham,Aston Villa,1,2,FT,3,Away Win
+1035508,2024-04-21 15:30:00+00:00,Premier League,2023,Fulham,Liverpool,1,3,FT,4,Away Win
+1035517,2024-04-27 14:00:00+00:00,Premier League,2023,Fulham,Crystal Palace,1,1,FT,2,Draw
+1035347,2023-12-23 17:30:00+00:00,Premier League,2023,Liverpool,Arsenal,1,1,FT,2,Draw
+1035450,2024-03-10 15:45:00+00:00,Premier League,2023,Liverpool,Manchester City,1,1,FT,2,Draw
+1035074,2023-09-01 19:00:00+00:00,Premier League,2023,Luton,West Ham,1,2,FT,3,Away Win
+1035094,2023-09-23 14:00:00+00:00,Premier League,2023,Luton,Wolves,1,1,FT,2,Draw
+1035051,2023-10-03 18:30:00+00:00,Premier League,2023,Luton,Burnley,1,2,FT,3,Away Win
+1035141,2023-11-05 16:30:00+00:00,Premier League,2023,Luton,Liverpool,1,1,FT,2,Draw
+1035329,2023-12-10 14:00:00+00:00,Premier League,2023,Luton,Manchester City,1,2,FT,3,Away Win
+1035348,2023-12-23 15:00:00+00:00,Premier League,2023,Luton,Newcastle,1,0,FT,1,Home Win
+1035408,2024-02-10 15:00:00+00:00,Premier League,2023,Luton,Sheffield Utd,1,3,FT,4,Away Win
+1035418,2024-02-18 16:30:00+00:00,Premier League,2023,Luton,Manchester United,1,2,FT,3,Away Win
+1035460,2024-03-16 15:00:00+00:00,Premier League,2023,Luton,Nottingham Forest,1,1,FT,2,Draw
+1035509,2024-04-20 14:00:00+00:00,Premier League,2023,Luton,Brentford,1,5,FT,6,Away Win
+1035531,2024-05-03 19:00:00+00:00,Premier League,2023,Luton,Everton,1,1,FT,2,Draw
+1035052,2023-08-19 19:00:00+00:00,Premier League,2023,Manchester City,Newcastle,1,0,FT,1,Home Win
+1035299,2023-11-25 12:30:00+00:00,Premier League,2023,Manchester City,Liverpool,1,1,FT,2,Draw
+1035419,2024-02-17 17:30:00+00:00,Premier League,2023,Manchester City,Chelsea,1,1,FT,2,Draw
+1035349,2024-02-20 19:30:00+00:00,Premier League,2023,Manchester City,Brentford,1,0,FT,1,Home Win
+1035046,2023-08-14 19:00:00+00:00,Premier League,2023,Manchester United,Wolves,1,0,FT,1,Home Win
+1035081,2023-09-16 14:00:00+00:00,Premier League,2023,Manchester United,Brighton,1,3,FT,4,Away Win
+1035154,2023-11-11 15:00:00+00:00,Premier League,2023,Manchester United,Luton,1,0,FT,1,Home Win
+1035431,2024-02-24 15:00:00+00:00,Premier League,2023,Manchester United,Fulham,1,2,FT,3,Away Win
+1035518,2024-04-27 14:00:00+00:00,Premier League,2023,Manchester United,Burnley,1,1,FT,2,Draw
+1035065,2023-08-27 15:30:00+00:00,Premier League,2023,Newcastle,Liverpool,1,2,FT,3,Away Win
+1035082,2023-09-16 16:30:00+00:00,Premier League,2023,Newcastle,Brentford,1,0,FT,1,Home Win
+1035143,2023-11-04 17:30:00+00:00,Premier League,2023,Newcastle,Arsenal,1,0,FT,1,Home Win
+1035311,2023-12-02 20:00:00+00:00,Premier League,2023,Newcastle,Manchester United,1,0,FT,1,Home Win
+1035362,2023-12-26 12:30:00+00:00,Premier League,2023,Newcastle,Nottingham Forest,1,3,FT,4,Away Win
+1035481,2024-04-02 18:30:00+00:00,Premier League,2023,Newcastle,Everton,1,1,FT,2,Draw
+1035539,2024-05-11 14:00:00+00:00,Premier League,2023,Newcastle,Brighton,1,1,FT,2,Draw
+1035083,2023-09-18 18:45:00+00:00,Premier League,2023,Nottingham Forest,Burnley,1,1,FT,2,Draw
+1035103,2023-10-01 13:00:00+00:00,Premier League,2023,Nottingham Forest,Brentford,1,1,FT,2,Draw
+1035387,2024-01-30 19:30:00+00:00,Premier League,2023,Nottingham Forest,Arsenal,1,2,FT,3,Away Win
+1035471,2024-03-30 15:00:00+00:00,Premier League,2023,Nottingham Forest,Crystal Palace,1,1,FT,2,Draw
+1035066,2023-08-27 13:00:00+00:00,Premier League,2023,Sheffield Utd,Manchester City,1,2,FT,3,Away Win
+1035125,2023-10-21 19:00:00+00:00,Premier League,2023,Sheffield Utd,Manchester United,1,2,FT,3,Away Win
+1035302,2023-11-25 15:00:00+00:00,Premier League,2023,Sheffield Utd,Bournemouth,1,3,FT,4,Away Win
+1035331,2023-12-09 15:00:00+00:00,Premier League,2023,Sheffield Utd,Brentford,1,0,FT,1,Home Win
+1035511,2024-04-20 14:00:00+00:00,Premier League,2023,Sheffield Utd,Burnley,1,4,FT,5,Away Win
+1035533,2024-05-04 14:00:00+00:00,Premier League,2023,Sheffield Utd,Nottingham Forest,1,3,FT,4,Away Win
+1035146,2023-11-06 20:00:00+00:00,Premier League,2023,Tottenham,Chelsea,1,4,FT,5,Away Win
+1035303,2023-11-26 14:00:00+00:00,Premier League,2023,Tottenham,Aston Villa,1,2,FT,3,Away Win
+1035320,2023-12-07 20:15:00+00:00,Premier League,2023,Tottenham,West Ham,1,2,FT,3,Away Win
+1035423,2024-02-17 15:00:00+00:00,Premier League,2023,Tottenham,Wolves,1,2,FT,3,Away Win
+1035085,2023-09-16 14:00:00+00:00,Premier League,2023,West Ham,Manchester City,1,3,FT,4,Away Win
+1035313,2023-12-03 14:00:00+00:00,Premier League,2023,West Ham,Crystal Palace,1,1,FT,2,Draw
+1035389,2024-02-01 19:30:00+00:00,Premier League,2023,West Ham,Bournemouth,1,1,FT,2,Draw
+1035462,2024-03-17 14:00:00+00:00,Premier League,2023,West Ham,Aston Villa,1,1,FT,2,Draw
+1035479,2024-04-02 19:15:00+00:00,Premier League,2023,West Ham,Tottenham,1,1,FT,2,Draw
+1035056,2023-08-19 14:00:00+00:00,Premier League,2023,Wolves,Brighton,1,4,FT,5,Away Win
+1035086,2023-09-16 11:30:00+00:00,Premier League,2023,Wolves,Liverpool,1,3,FT,4,Away Win
+1035116,2023-10-08 13:00:00+00:00,Premier League,2023,Wolves,Aston Villa,1,1,FT,2,Draw
+1035321,2023-12-05 19:30:00+00:00,Premier League,2023,Wolves,Burnley,1,0,FT,1,Home Win
+1035333,2023-12-09 15:00:00+00:00,Premier League,2023,Wolves,Nottingham Forest,1,1,FT,2,Draw
+1035433,2024-02-25 13:30:00+00:00,Premier League,2023,Wolves,Sheffield Utd,1,0,FT,1,Home Win
+1035493,2024-04-06 14:00:00+00:00,Premier League,2023,Wolves,West Ham,1,2,FT,3,Away Win
+1035543,2024-05-11 14:00:00+00:00,Premier League,2023,Wolves,Crystal Palace,1,3,FT,4,Away Win
+1035038,2023-08-12 11:30:00+00:00,Premier League,2023,Arsenal,Nottingham Forest,2,1,FT,3,Home Win
+1035058,2023-08-26 14:00:00+00:00,Premier League,2023,Arsenal,Fulham,2,2,FT,4,Draw
+1035087,2023-09-24 13:00:00+00:00,Premier League,2023,Arsenal,Tottenham,2,2,FT,4,Draw
+1035305,2023-12-02 15:00:00+00:00,Premier League,2023,Arsenal,Wolves,2,1,FT,3,Home Win
+1035335,2023-12-17 14:00:00+00:00,Premier League,2023,Arsenal,Brighton,2,0,FT,2,Home Win
+1035445,2024-03-09 17:30:00+00:00,Premier League,2023,Arsenal,Brentford,2,1,FT,3,Home Win
+1035475,2024-04-03 18:30:00+00:00,Premier League,2023,Arsenal,Luton,2,0,FT,2,Home Win
+1035544,2024-05-19 15:00:00+00:00,Premier League,2023,Arsenal,Everton,2,1,FT,3,Home Win
+1035465,2024-03-30 17:30:00+00:00,Premier League,2023,Aston Villa,Wolves,2,0,FT,2,Home Win
+1035515,2024-04-27 19:00:00+00:00,Premier League,2023,Aston Villa,Chelsea,2,2,FT,4,Draw
+1035127,2023-10-28 14:00:00+00:00,Premier League,2023,Bournemouth,Burnley,2,1,FT,3,Home Win
+1035147,2023-11-11 17:30:00+00:00,Premier League,2023,Bournemouth,Newcastle,2,0,FT,2,Home Win
+1035304,2023-12-03 14:00:00+00:00,Premier League,2023,Bournemouth,Aston Villa,2,2,FT,4,Draw
+1035444,2024-03-09 15:00:00+00:00,Premier League,2023,Bournemouth,Sheffield Utd,2,2,FT,4,Draw
+1035464,2024-03-30 15:00:00+00:00,Premier League,2023,Bournemouth,Everton,2,1,FT,3,Home Win
+1035494,2024-04-13 16:30:00+00:00,Premier League,2023,Bournemouth,Manchester United,2,2,FT,4,Draw
+1035044,2023-08-13 13:00:00+00:00,Premier League,2023,Brentford,Tottenham,2,2,FT,4,Draw
+1035068,2023-09-02 14:00:00+00:00,Premier League,2023,Brentford,Bournemouth,2,2,FT,4,Draw
+1035434,2024-03-02 15:00:00+00:00,Premier League,2023,Brentford,Chelsea,2,2,FT,4,Draw
+1035496,2024-04-13 14:00:00+00:00,Premier League,2023,Brentford,Sheffield Utd,2,0,FT,2,Home Win
+1035545,2024-05-19 15:00:00+00:00,Premier League,2023,Brentford,Newcastle,2,4,FT,6,Away Win
+1035108,2023-10-08 13:00:00+00:00,Premier League,2023,Brighton,Liverpool,2,2,FT,4,Draw
+1035315,2023-12-06 19:30:00+00:00,Premier League,2023,Brighton,Brentford,2,1,FT,3,Home Win
+1035070,2023-09-02 14:00:00+00:00,Premier League,2023,Burnley,Tottenham,2,5,FT,7,Away Win
+1035398,2024-02-03 15:00:00+00:00,Premier League,2023,Burnley,Fulham,2,2,FT,4,Draw
+1035456,2024-03-16 15:00:00+00:00,Premier League,2023,Burnley,Brentford,2,1,FT,3,Home Win
+1035120,2023-10-21 16:30:00+00:00,Premier League,2023,Chelsea,Arsenal,2,2,FT,4,Draw
+1035338,2023-12-16 15:00:00+00:00,Premier League,2023,Chelsea,Sheffield Utd,2,0,FT,2,Home Win
+1035359,2023-12-27 19:30:00+00:00,Premier League,2023,Chelsea,Crystal Palace,2,1,FT,3,Home Win
+1035399,2024-02-04 14:00:00+00:00,Premier League,2023,Chelsea,Wolves,2,4,FT,6,Away Win
+1035467,2024-03-30 15:00:00+00:00,Premier League,2023,Chelsea,Burnley,2,2,FT,4,Draw
+1035428,2024-05-02 18:30:00+00:00,Premier League,2023,Chelsea,Tottenham,2,0,FT,2,Home Win
+1035548,2024-05-19 15:00:00+00:00,Premier League,2023,Chelsea,Bournemouth,2,1,FT,3,Home Win
+1035152,2023-11-11 15:00:00+00:00,Premier League,2023,Crystal Palace,Everton,2,3,FT,5,Away Win
+1035486,2024-04-06 11:30:00+00:00,Premier League,2023,Crystal Palace,Manchester City,2,4,FT,6,Away Win
+1035457,2024-04-24 19:00:00+00:00,Premier League,2023,Crystal Palace,Newcastle,2,0,FT,2,Home Win
+1035327,2023-12-10 14:00:00+00:00,Premier League,2023,Everton,Chelsea,2,0,FT,2,Home Win
+1035400,2024-02-03 12:30:00+00:00,Premier League,2023,Everton,Tottenham,2,2,FT,4,Draw
+1035507,2024-04-21 12:30:00+00:00,Premier League,2023,Everton,Nottingham Forest,2,0,FT,2,Home Win
+1035458,2024-04-24 19:00:00+00:00,Premier League,2023,Everton,Liverpool,2,0,FT,2,Home Win
+1035366,2023-12-31 14:00:00+00:00,Premier League,2023,Fulham,Arsenal,2,1,FT,3,Home Win
+1035121,2023-10-21 11:30:00+00:00,Premier League,2023,Liverpool,Everton,2,0,FT,2,Home Win
+1035468,2024-03-31 13:00:00+00:00,Premier League,2023,Liverpool,Brighton,2,1,FT,3,Home Win
+1035550,2024-05-19 15:00:00+00:00,Premier League,2023,Liverpool,Wolves,2,0,FT,2,Home Win
+1035298,2023-11-25 15:00:00+00:00,Premier League,2023,Luton,Crystal Palace,2,1,FT,3,Home Win
+1035368,2023-12-30 12:30:00+00:00,Premier League,2023,Luton,Chelsea,2,3,FT,5,Away Win
+1035438,2024-03-02 17:30:00+00:00,Premier League,2023,Luton,Aston Villa,2,3,FT,5,Away Win
+1035489,2024-04-06 14:00:00+00:00,Premier League,2023,Luton,Bournemouth,2,1,FT,3,Home Win
+1035551,2024-05-19 15:00:00+00:00,Premier League,2023,Luton,Fulham,2,4,FT,6,Away Win
+1035095,2023-09-23 14:00:00+00:00,Premier League,2023,Manchester City,Nottingham Forest,2,0,FT,2,Home Win
+1035122,2023-10-21 14:00:00+00:00,Premier League,2023,Manchester City,Brighton,2,1,FT,3,Home Win
+1035340,2023-12-16 15:00:00+00:00,Premier League,2023,Manchester City,Crystal Palace,2,2,FT,4,Draw
+1035369,2023-12-30 15:00:00+00:00,Premier League,2023,Manchester City,Sheffield Utd,2,0,FT,2,Home Win
+1035409,2024-02-10 12:30:00+00:00,Premier League,2023,Manchester City,Everton,2,0,FT,2,Home Win
+1035114,2023-10-07 14:00:00+00:00,Premier League,2023,Manchester United,Brentford,2,1,FT,3,Home Win
+1035323,2023-12-06 20:15:00+00:00,Premier League,2023,Manchester United,Chelsea,2,1,FT,3,Home Win
+1035381,2024-01-14 16:30:00+00:00,Premier League,2023,Manchester United,Tottenham,2,2,FT,4,Draw
+1035451,2024-03-09 12:30:00+00:00,Premier League,2023,Manchester United,Everton,2,0,FT,2,Home Win
+1035490,2024-04-07 14:30:00+00:00,Premier League,2023,Manchester United,Liverpool,2,2,FT,4,Draw
+1035102,2023-09-30 14:00:00+00:00,Premier League,2023,Newcastle,Burnley,2,0,FT,2,Home Win
+1035382,2024-01-13 17:30:00+00:00,Premier League,2023,Newcastle,Manchester City,2,3,FT,5,Away Win
+1035420,2024-02-17 15:00:00+00:00,Premier League,2023,Newcastle,Bournemouth,2,2,FT,4,Draw
+1035053,2023-08-18 18:45:00+00:00,Premier League,2023,Nottingham Forest,Sheffield Utd,2,1,FT,3,Home Win
+1035124,2023-10-21 14:00:00+00:00,Premier League,2023,Nottingham Forest,Luton,2,2,FT,4,Draw
+1035144,2023-11-05 14:00:00+00:00,Premier League,2023,Nottingham Forest,Aston Villa,2,0,FT,2,Home Win
+1035301,2023-11-25 15:00:00+00:00,Premier League,2023,Nottingham Forest,Brighton,2,3,FT,5,Away Win
+1035350,2023-12-23 15:00:00+00:00,Premier League,2023,Nottingham Forest,Bournemouth,2,3,FT,5,Away Win
+1035370,2023-12-30 17:30:00+00:00,Premier League,2023,Nottingham Forest,Manchester United,2,1,FT,3,Home Win
+1035410,2024-02-10 17:30:00+00:00,Premier League,2023,Nottingham Forest,Newcastle,2,3,FT,5,Away Win
+1035421,2024-02-17 15:00:00+00:00,Premier League,2023,Nottingham Forest,West Ham,2,0,FT,2,Home Win
+1035502,2024-04-13 14:00:00+00:00,Premier League,2023,Nottingham Forest,Wolves,2,2,FT,4,Draw
+1035540,2024-05-11 16:30:00+00:00,Premier League,2023,Nottingham Forest,Chelsea,2,3,FT,5,Away Win
+1035076,2023-09-02 11:30:00+00:00,Premier League,2023,Sheffield Utd,Everton,2,2,FT,4,Draw
+1035145,2023-11-04 15:00:00+00:00,Premier League,2023,Sheffield Utd,Wolves,2,1,FT,3,Home Win
+1035363,2023-12-26 15:00:00+00:00,Premier League,2023,Sheffield Utd,Luton,2,3,FT,5,Away Win
+1035383,2024-01-21 14:00:00+00:00,Premier League,2023,Sheffield Utd,West Ham,2,2,FT,4,Draw
+1035491,2024-04-07 16:30:00+00:00,Premier League,2023,Sheffield Utd,Chelsea,2,2,FT,4,Draw
+1035054,2023-08-19 16:30:00+00:00,Premier League,2023,Tottenham,Manchester United,2,0,FT,2,Home Win
+1035084,2023-09-16 14:00:00+00:00,Premier League,2023,Tottenham,Sheffield Utd,2,1,FT,3,Home Win
+1035104,2023-09-30 16:30:00+00:00,Premier League,2023,Tottenham,Liverpool,2,1,FT,3,Home Win
+1035126,2023-10-23 19:00:00+00:00,Premier League,2023,Tottenham,Fulham,2,0,FT,2,Home Win
+1035351,2023-12-23 15:00:00+00:00,Premier League,2023,Tottenham,Everton,2,1,FT,3,Home Win
+1035411,2024-02-10 15:00:00+00:00,Premier League,2023,Tottenham,Brighton,2,1,FT,3,Home Win
+1035473,2024-03-30 15:00:00+00:00,Premier League,2023,Tottenham,Luton,2,1,FT,3,Home Win
+1035521,2024-04-28 13:00:00+00:00,Premier League,2023,Tottenham,Arsenal,2,3,FT,5,Away Win
+1035541,2024-05-11 14:00:00+00:00,Premier League,2023,Tottenham,Burnley,2,1,FT,3,Home Win
+1035105,2023-09-30 14:00:00+00:00,Premier League,2023,West Ham,Sheffield Utd,2,0,FT,2,Home Win
+1035115,2023-10-08 13:00:00+00:00,Premier League,2023,West Ham,Newcastle,2,2,FT,4,Draw
+1035352,2023-12-23 12:30:00+00:00,Premier League,2023,West Ham,Manchester United,2,0,FT,2,Home Win
+1035452,2024-03-10 14:00:00+00:00,Premier League,2023,West Ham,Burnley,2,2,FT,4,Draw
+1035522,2024-04-27 11:30:00+00:00,Premier League,2023,West Ham,Liverpool,2,2,FT,4,Draw
+1035106,2023-09-30 14:00:00+00:00,Premier League,2023,Wolves,Manchester City,2,1,FT,3,Home Win
+1035136,2023-10-28 16:30:00+00:00,Premier League,2023,Wolves,Newcastle,2,2,FT,4,Draw
+1035156,2023-11-11 12:30:00+00:00,Premier League,2023,Wolves,Tottenham,2,1,FT,3,Home Win
+1035353,2023-12-24 13:00:00+00:00,Premier League,2023,Wolves,Chelsea,2,1,FT,3,Home Win
+1035453,2024-03-09 15:00:00+00:00,Premier League,2023,Wolves,Fulham,2,1,FT,3,Home Win
+1035523,2024-04-27 14:00:00+00:00,Premier League,2023,Wolves,Luton,2,1,FT,3,Home Win
+1035067,2023-09-03 15:30:00+00:00,Premier League,2023,Arsenal,Manchester United,3,1,FT,4,Home Win
+1035148,2023-11-11 15:00:00+00:00,Premier League,2023,Arsenal,Burnley,3,1,FT,4,Home Win
+1035395,2024-02-04 16:30:00+00:00,Premier League,2023,Arsenal,Liverpool,3,1,FT,4,Home Win
+1035524,2024-05-04 11:30:00+00:00,Premier League,2023,Arsenal,Bournemouth,3,0,FT,3,Home Win
+1035078,2023-09-16 14:00:00+00:00,Premier League,2023,Aston Villa,Crystal Palace,3,1,FT,4,Home Win
+1035129,2023-10-29 14:00:00+00:00,Premier League,2023,Aston Villa,Luton,3,1,FT,4,Home Win
+1035149,2023-11-12 14:00:00+00:00,Premier League,2023,Aston Villa,Fulham,3,1,FT,4,Home Win
+1035364,2023-12-30 15:00:00+00:00,Premier League,2023,Aston Villa,Burnley,3,2,FT,5,Home Win
+1035484,2024-04-06 14:00:00+00:00,Premier League,2023,Aston Villa,Brentford,3,3,FT,6,Draw
+1035504,2024-04-21 14:00:00+00:00,Premier League,2023,Aston Villa,Bournemouth,3,1,FT,4,Home Win
+1035535,2024-05-13 19:00:00+00:00,Premier League,2023,Aston Villa,Liverpool,3,3,FT,6,Draw
+1035354,2023-12-26 15:00:00+00:00,Premier League,2023,Bournemouth,Fulham,3,0,FT,3,Home Win
+1035514,2024-04-28 13:00:00+00:00,Premier League,2023,Bournemouth,Brighton,3,0,FT,3,Home Win
+1035119,2023-10-21 14:00:00+00:00,Premier League,2023,Brentford,Burnley,3,0,FT,3,Home Win
+1035137,2023-11-04 15:00:00+00:00,Premier League,2023,Brentford,West Ham,3,2,FT,5,Home Win
+1035306,2023-12-02 15:00:00+00:00,Premier League,2023,Brentford,Luton,3,1,FT,4,Home Win
+1035376,2024-01-20 17:30:00+00:00,Premier League,2023,Brentford,Nottingham Forest,3,2,FT,5,Home Win
+1035069,2023-09-02 16:30:00+00:00,Premier League,2023,Brighton,Newcastle,3,1,FT,4,Home Win
+1035089,2023-09-24 13:00:00+00:00,Premier League,2023,Brighton,Bournemouth,3,1,FT,4,Home Win
+1035062,2023-08-25 19:00:00+00:00,Premier League,2023,Chelsea,Luton,3,0,FT,3,Home Win
+1035308,2023-12-03 14:00:00+00:00,Premier League,2023,Chelsea,Brighton,3,2,FT,5,Home Win
+1035448,2024-03-11 20:00:00+00:00,Premier League,2023,Chelsea,Newcastle,3,2,FT,5,Home Win
+1035072,2023-09-03 13:00:00+00:00,Premier League,2023,Crystal Palace,Wolves,3,2,FT,5,Home Win
+1035365,2023-12-30 15:00:00+00:00,Premier League,2023,Crystal Palace,Brentford,3,1,FT,4,Home Win
+1035391,2024-01-30 20:00:00+00:00,Premier League,2023,Crystal Palace,Sheffield Utd,3,2,FT,5,Home Win
+1035429,2024-02-24 15:00:00+00:00,Premier League,2023,Crystal Palace,Burnley,3,0,FT,3,Home Win
+1035111,2023-10-07 14:00:00+00:00,Premier League,2023,Everton,Bournemouth,3,0,FT,3,Home Win
+1035316,2023-12-07 19:30:00+00:00,Premier League,2023,Everton,Newcastle,3,0,FT,3,Home Win
+1035112,2023-10-07 14:00:00+00:00,Premier League,2023,Fulham,Sheffield Utd,3,1,FT,4,Home Win
+1035297,2023-11-27 20:00:00+00:00,Premier League,2023,Fulham,Wolves,3,2,FT,5,Home Win
+1035406,2024-02-10 15:00:00+00:00,Premier League,2023,Fulham,Bournemouth,3,1,FT,4,Home Win
+1035437,2024-03-02 15:00:00+00:00,Premier League,2023,Fulham,Brighton,3,0,FT,3,Home Win
+1035459,2024-03-16 17:30:00+00:00,Premier League,2023,Fulham,Tottenham,3,0,FT,3,Home Win
+1035050,2023-08-19 14:00:00+00:00,Premier League,2023,Liverpool,Bournemouth,3,1,FT,4,Home Win
+1035073,2023-09-03 13:00:00+00:00,Premier League,2023,Liverpool,Aston Villa,3,0,FT,3,Home Win
+1035093,2023-09-24 13:00:00+00:00,Premier League,2023,Liverpool,West Ham,3,1,FT,4,Home Win
+1035133,2023-10-29 14:00:00+00:00,Premier League,2023,Liverpool,Nottingham Forest,3,0,FT,3,Home Win
+1035153,2023-11-12 14:00:00+00:00,Premier League,2023,Liverpool,Brentford,3,0,FT,3,Home Win
+1035407,2024-02-10 15:00:00+00:00,Premier League,2023,Liverpool,Burnley,3,1,FT,4,Home Win
+1035482,2024-04-04 18:30:00+00:00,Premier League,2023,Liverpool,Sheffield Utd,3,1,FT,4,Home Win
+1035318,2023-12-05 20:15:00+00:00,Premier League,2023,Luton,Arsenal,3,4,FT,7,Away Win
+1035310,2023-12-03 16:30:00+00:00,Premier League,2023,Manchester City,Tottenham,3,3,FT,6,Draw
+1035393,2024-01-31 19:30:00+00:00,Premier League,2023,Manchester City,Burnley,3,1,FT,4,Home Win
+1035439,2024-03-03 15:30:00+00:00,Premier League,2023,Manchester City,Manchester United,3,1,FT,4,Home Win
+1035552,2024-05-19 15:00:00+00:00,Premier League,2023,Manchester City,West Ham,3,1,FT,4,Home Win
+1035064,2023-08-26 14:00:00+00:00,Premier League,2023,Manchester United,Nottingham Forest,3,2,FT,5,Home Win
+1035361,2023-12-26 20:00:00+00:00,Premier League,2023,Manchester United,Aston Villa,3,2,FT,5,Home Win
+1035401,2024-02-04 14:00:00+00:00,Premier League,2023,Manchester United,West Ham,3,0,FT,3,Home Win
+1035510,2024-05-15 19:00:00+00:00,Premier League,2023,Manchester United,Newcastle,3,2,FT,5,Home Win
+1035341,2023-12-16 15:00:00+00:00,Premier League,2023,Newcastle,Fulham,3,0,FT,3,Home Win
+1035440,2024-03-02 15:00:00+00:00,Premier League,2023,Newcastle,Wolves,3,0,FT,3,Home Win
+1035478,2024-04-02 18:30:00+00:00,Premier League,2023,Nottingham Forest,Fulham,3,1,FT,4,Home Win
+1035472,2024-03-30 15:00:00+00:00,Premier League,2023,Sheffield Utd,Fulham,3,3,FT,6,Draw
+1035371,2023-12-31 14:00:00+00:00,Premier League,2023,Tottenham,Bournemouth,3,1,FT,4,Home Win
+1035388,2024-01-31 19:30:00+00:00,Premier League,2023,Tottenham,Brentford,3,2,FT,5,Home Win
+1035443,2024-03-02 15:00:00+00:00,Premier League,2023,Tottenham,Crystal Palace,3,1,FT,4,Home Win
+1035492,2024-04-07 17:00:00+00:00,Premier League,2023,Tottenham,Nottingham Forest,3,1,FT,4,Home Win
+1035055,2023-08-20 15:30:00+00:00,Premier League,2023,West Ham,Chelsea,3,1,FT,4,Home Win
+1035155,2023-11-12 14:00:00+00:00,Premier League,2023,West Ham,Nottingham Forest,3,2,FT,5,Home Win
+1035343,2023-12-17 14:00:00+00:00,Premier League,2023,West Ham,Wolves,3,0,FT,3,Home Win
+1035542,2024-05-11 14:00:00+00:00,Premier League,2023,West Ham,Luton,3,1,FT,4,Home Win
+1035373,2023-12-30 15:00:00+00:00,Premier League,2023,Wolves,Everton,3,0,FT,3,Home Win
+1035390,2024-02-01 20:15:00+00:00,Premier League,2023,Wolves,Manchester United,3,4,FT,7,Away Win
+1035425,2024-02-24 20:00:00+00:00,Premier League,2023,Arsenal,Newcastle,4,1,FT,5,Home Win
+1035047,2023-08-20 13:00:00+00:00,Premier League,2023,Aston Villa,Everton,4,0,FT,4,Home Win
+1035118,2023-10-22 15:30:00+00:00,Premier League,2023,Aston Villa,West Ham,4,1,FT,5,Home Win
+1035426,2024-02-24 15:00:00+00:00,Premier League,2023,Aston Villa,Nottingham Forest,4,2,FT,6,Home Win
+1035334,2024-03-13 19:30:00+00:00,Premier League,2023,Bournemouth,Luton,4,3,FT,7,Home Win
+1035040,2023-08-12 14:00:00+00:00,Premier League,2023,Brighton,Luton,4,1,FT,5,Home Win
+1035357,2023-12-28 19:30:00+00:00,Premier League,2023,Brighton,Tottenham,4,2,FT,6,Home Win
+1035397,2024-02-03 15:00:00+00:00,Premier League,2023,Brighton,Crystal Palace,4,1,FT,5,Home Win
+1035151,2023-11-12 16:30:00+00:00,Premier League,2023,Chelsea,Manchester City,4,4,FT,8,Draw
+1035480,2024-04-04 19:15:00+00:00,Premier League,2023,Chelsea,Manchester United,4,3,FT,7,Home Win
+1035529,2024-05-06 19:00:00+00:00,Premier League,2023,Crystal Palace,Manchester United,4,0,FT,4,Home Win
+1035309,2023-12-03 14:00:00+00:00,Premier League,2023,Liverpool,Fulham,4,3,FT,7,Home Win
+1035367,2024-01-01 20:00:00+00:00,Premier League,2023,Liverpool,Newcastle,4,2,FT,6,Home Win
+1035392,2024-01-31 20:15:00+00:00,Premier League,2023,Liverpool,Chelsea,4,1,FT,5,Home Win
+1035430,2024-02-21 19:30:00+00:00,Premier League,2023,Liverpool,Luton,4,1,FT,5,Home Win
+1035530,2024-05-05 15:30:00+00:00,Premier League,2023,Liverpool,Tottenham,4,2,FT,6,Home Win
+1035386,2024-01-30 19:45:00+00:00,Premier League,2023,Luton,Brighton,4,0,FT,4,Home Win
+1035483,2024-04-03 19:15:00+00:00,Premier League,2023,Manchester City,Aston Villa,4,1,FT,5,Home Win
+1035461,2024-04-24 19:00:00+00:00,Premier League,2023,Manchester United,Sheffield Utd,4,2,FT,6,Home Win
+1035123,2023-10-21 14:00:00+00:00,Premier League,2023,Newcastle,Crystal Palace,4,0,FT,4,Home Win
+1035300,2023-11-25 15:00:00+00:00,Premier League,2023,Newcastle,Chelsea,4,1,FT,5,Home Win
+1035402,2024-02-03 15:00:00+00:00,Premier League,2023,Newcastle,Luton,4,4,FT,8,Draw
+1035470,2024-03-30 12:30:00+00:00,Premier League,2023,Newcastle,West Ham,4,3,FT,7,Home Win
+1035501,2024-04-13 11:30:00+00:00,Premier League,2023,Newcastle,Tottenham,4,0,FT,4,Home Win
+1035332,2023-12-10 16:30:00+00:00,Premier League,2023,Tottenham,Newcastle,4,1,FT,5,Home Win
+1035432,2024-02-26 20:00:00+00:00,Premier League,2023,West Ham,Brentford,4,2,FT,6,Home Win
+1035128,2023-10-28 14:00:00+00:00,Premier League,2023,Arsenal,Sheffield Utd,5,0,FT,5,Home Win
+1035375,2024-01-20 12:30:00+00:00,Premier League,2023,Arsenal,Crystal Palace,5,0,FT,5,Home Win
+1035454,2024-04-23 19:00:00+00:00,Premier League,2023,Arsenal,Chelsea,5,0,FT,5,Home Win
+1035307,2023-12-02 15:00:00+00:00,Premier League,2023,Burnley,Sheffield Utd,5,0,FT,5,Home Win
+1035528,2024-05-05 13:00:00+00:00,Premier League,2023,Chelsea,West Ham,5,0,FT,5,Home Win
+1035506,2024-04-21 14:00:00+00:00,Premier League,2023,Crystal Palace,West Ham,5,2,FT,7,Home Win
+1035549,2024-05-19 15:00:00+00:00,Premier League,2023,Crystal Palace,Aston Villa,5,0,FT,5,Home Win
+1035317,2023-12-06 19:30:00+00:00,Premier League,2023,Fulham,Nottingham Forest,5,0,FT,5,Home Win
+1035328,2023-12-10 14:00:00+00:00,Premier League,2023,Fulham,West Ham,5,0,FT,5,Home Win
+1035075,2023-09-02 14:00:00+00:00,Premier League,2023,Manchester City,Fulham,5,1,FT,6,Home Win
+1035500,2024-04-13 14:00:00+00:00,Premier League,2023,Manchester City,Luton,5,1,FT,6,Home Win
+1035532,2024-05-04 16:30:00+00:00,Premier League,2023,Manchester City,Wolves,5,1,FT,6,Home Win
+1035043,2023-08-12 16:30:00+00:00,Premier League,2023,Newcastle,Aston Villa,5,1,FT,6,Home Win
+1035519,2024-04-27 14:00:00+00:00,Premier League,2023,Newcastle,Sheffield Utd,5,1,FT,6,Home Win
+1035098,2023-09-30 11:30:00+00:00,Premier League,2023,Aston Villa,Brighton,6,1,FT,7,Home Win
+1035498,2024-04-15 19:00:00+00:00,Premier League,2023,Chelsea,Everton,6,0,FT,6,Home Win
+1035142,2023-11-04 15:00:00+00:00,Premier League,2023,Manchester City,Bournemouth,6,1,FT,7,Home Win

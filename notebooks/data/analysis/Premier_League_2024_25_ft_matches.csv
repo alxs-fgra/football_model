@@ -1,0 +1,81 @@
+fixture_id,date,league,season,home_team,away_team,goals_home,goals_away,status,total_goals,result
+1378970,2025-08-16 11:30:00+00:00,Premier League,2025,Aston Villa,Newcastle,0,0,FT,0,Draw
+1378976,2025-08-17 13:00:00+00:00,Premier League,2025,Chelsea,Crystal Palace,0,0,FT,0,Draw
+1378992,2025-08-30 16:30:00+00:00,Premier League,2025,Leeds,Newcastle,0,0,FT,0,Draw
+1379004,2025-09-13 14:00:00+00:00,Premier League,2025,Everton,Aston Villa,0,0,FT,0,Draw
+1379003,2025-09-13 14:00:00+00:00,Premier League,2025,Crystal Palace,Sunderland,0,0,FT,0,Draw
+1379010,2025-09-21 13:00:00+00:00,Premier League,2025,Bournemouth,Newcastle,0,0,FT,0,Draw
+1378978,2025-08-18 19:00:00+00:00,Premier League,2025,Leeds,Everton,1,0,FT,1,Home Win
+1378980,2025-08-23 14:00:00+00:00,Premier League,2025,Bournemouth,Wolves,1,0,FT,1,Home Win
+1378981,2025-08-23 14:00:00+00:00,Premier League,2025,Brentford,Aston Villa,1,0,FT,1,Home Win
+1378993,2025-08-31 15:30:00+00:00,Premier League,2025,Liverpool,Arsenal,1,0,FT,1,Home Win
+1379007,2025-09-13 14:00:00+00:00,Premier League,2025,Newcastle,Wolves,1,0,FT,1,Home Win
+1379005,2025-09-13 14:00:00+00:00,Premier League,2025,Fulham,Leeds,1,0,FT,1,Home Win
+1378982,2025-08-23 14:00:00+00:00,Premier League,2025,Burnley,Sunderland,2,0,FT,2,Home Win
+1378984,2025-08-24 13:00:00+00:00,Premier League,2025,Everton,Brighton,2,0,FT,2,Home Win
+1378991,2025-08-30 11:30:00+00:00,Premier League,2025,Chelsea,Fulham,2,0,FT,2,Home Win
+1379036,2025-10-04 14:00:00+00:00,Premier League,2025,Manchester United,Sunderland,2,0,FT,2,Home Win
+1379029,2025-10-04 14:00:00+00:00,Premier League,2025,Arsenal,West Ham,2,0,FT,2,Home Win
+1379037,2025-10-05 13:00:00+00:00,Premier League,2025,Newcastle,Nottingham Forest,2,0,FT,2,Home Win
+1379040,2025-10-18 14:00:00+00:00,Premier League,2025,Burnley,Leeds,2,0,FT,2,Home Win
+1379044,2025-10-18 14:00:00+00:00,Premier League,2025,Manchester City,Everton,2,0,FT,2,Home Win
+1379046,2025-10-18 14:00:00+00:00,Premier League,2025,Sunderland,Wolves,2,0,FT,2,Home Win
+1378974,2025-08-16 14:00:00+00:00,Premier League,2025,Tottenham,Burnley,3,0,FT,3,Home Win
+1378973,2025-08-16 14:00:00+00:00,Premier League,2025,Sunderland,West Ham,3,0,FT,3,Home Win
+1378999,2025-09-13 11:30:00+00:00,Premier League,2025,Arsenal,Nottingham Forest,3,0,FT,3,Home Win
+1379006,2025-09-14 15:30:00+00:00,Premier League,2025,Manchester City,Manchester United,3,0,FT,3,Home Win
+1378979,2025-08-23 16:30:00+00:00,Premier League,2025,Arsenal,Leeds,5,0,FT,5,Home Win
+1378977,2025-08-17 15:30:00+00:00,Premier League,2025,Manchester United,Arsenal,0,1,FT,1,Away Win
+1378997,2025-08-30 14:00:00+00:00,Premier League,2025,Tottenham,Bournemouth,0,1,FT,1,Away Win
+1379002,2025-09-14 13:00:00+00:00,Premier League,2025,Burnley,Liverpool,0,1,FT,1,Away Win
+1379027,2025-09-27 16:30:00+00:00,Premier League,2025,Nottingham Forest,Sunderland,0,1,FT,1,Away Win
+1379032,2025-10-05 15:30:00+00:00,Premier League,2025,Brentford,Manchester City,0,1,FT,1,Away Win
+1379042,2025-10-18 16:30:00+00:00,Premier League,2025,Fulham,Arsenal,0,1,FT,1,Away Win
+1378971,2025-08-16 14:00:00+00:00,Premier League,2025,Brighton,Fulham,1,1,FT,2,Draw
+1378983,2025-08-24 13:00:00+00:00,Premier League,2025,Crystal Palace,Nottingham Forest,1,1,FT,2,Draw
+1378985,2025-08-24 15:30:00+00:00,Premier League,2025,Fulham,Manchester United,1,1,FT,2,Draw
+1379012,2025-09-20 14:00:00+00:00,Premier League,2025,Burnley,Nottingham Forest,1,1,FT,2,Draw
+1379016,2025-09-21 13:00:00+00:00,Premier League,2025,Sunderland,Aston Villa,1,1,FT,2,Draw
+1379009,2025-09-21 15:30:00+00:00,Premier League,2025,Arsenal,Manchester City,1,1,FT,2,Draw
+1379028,2025-09-27 19:00:00+00:00,Premier League,2025,Tottenham,Wolves,1,1,FT,2,Draw
+1379023,2025-09-29 19:00:00+00:00,Premier League,2025,Everton,West Ham,1,1,FT,2,Draw
+1379038,2025-10-05 13:00:00+00:00,Premier League,2025,Wolves,Brighton,1,1,FT,2,Draw
+1378996,2025-08-30 14:00:00+00:00,Premier League,2025,Sunderland,Brentford,2,1,FT,3,Home Win
+1378990,2025-08-31 13:00:00+00:00,Premier League,2025,Brighton,Manchester City,2,1,FT,3,Home Win
+1379000,2025-09-13 14:00:00+00:00,Premier League,2025,Bournemouth,Brighton,2,1,FT,3,Home Win
+1379014,2025-09-20 11:30:00+00:00,Premier League,2025,Liverpool,Everton,2,1,FT,3,Home Win
+1379015,2025-09-20 16:30:00+00:00,Premier League,2025,Manchester United,Chelsea,2,1,FT,3,Home Win
+1379022,2025-09-27 14:00:00+00:00,Premier League,2025,Crystal Palace,Liverpool,2,1,FT,3,Home Win
+1379033,2025-10-04 16:30:00+00:00,Premier League,2025,Chelsea,Liverpool,2,1,FT,3,Home Win
+1379034,2025-10-05 13:00:00+00:00,Premier League,2025,Everton,Crystal Palace,2,1,FT,3,Home Win
+1379030,2025-10-05 13:00:00+00:00,Premier League,2025,Aston Villa,Burnley,2,1,FT,3,Home Win
+1379039,2025-10-18 14:00:00+00:00,Premier League,2025,Brighton,Newcastle,2,1,FT,3,Home Win
+1378972,2025-08-17 13:00:00+00:00,Premier League,2025,Nottingham Forest,Brentford,3,1,FT,4,Home Win
+1379013,2025-09-20 19:00:00+00:00,Premier League,2025,Fulham,Brentford,3,1,FT,4,Home Win
+1379020,2025-09-27 11:30:00+00:00,Premier League,2025,Brentford,Manchester United,3,1,FT,4,Home Win
+1379019,2025-09-28 13:00:00+00:00,Premier League,2025,Aston Villa,Fulham,3,1,FT,4,Home Win
+1379031,2025-10-03 19:00:00+00:00,Premier League,2025,Bournemouth,Fulham,3,1,FT,4,Home Win
+1379025,2025-09-27 14:00:00+00:00,Premier League,2025,Manchester City,Burnley,5,1,FT,6,Home Win
+1378986,2025-08-23 11:30:00+00:00,Premier League,2025,Manchester City,Tottenham,0,2,FT,2,Away Win
+1379048,2025-10-20 19:00:00+00:00,Premier League,2025,West Ham,Brentford,0,2,FT,2,Away Win
+1379017,2025-09-20 14:00:00+00:00,Premier League,2025,West Ham,Crystal Palace,1,2,FT,3,Away Win
+1379026,2025-09-28 15:30:00+00:00,Premier League,2025,Newcastle,Arsenal,1,2,FT,3,Away Win
+1379035,2025-10-04 11:30:00+00:00,Premier League,2025,Leeds,Tottenham,1,2,FT,3,Away Win
+1379047,2025-10-19 13:00:00+00:00,Premier League,2025,Tottenham,Aston Villa,1,2,FT,3,Away Win
+1379043,2025-10-19 15:30:00+00:00,Premier League,2025,Liverpool,Manchester United,1,2,FT,3,Away Win
+1379001,2025-09-13 19:00:00+00:00,Premier League,2025,Brentford,Chelsea,2,2,FT,4,Draw
+1379011,2025-09-20 14:00:00+00:00,Premier League,2025,Brighton,Tottenham,2,2,FT,4,Draw
+1379024,2025-09-27 14:00:00+00:00,Premier League,2025,Leeds,Bournemouth,2,2,FT,4,Draw
+1378994,2025-08-30 14:00:00+00:00,Premier League,2025,Manchester United,Burnley,3,2,FT,5,Home Win
+1378969,2025-08-15 19:00:00+00:00,Premier League,2025,Liverpool,Bournemouth,4,2,FT,6,Home Win
+1378995,2025-08-31 13:00:00+00:00,Premier League,2025,Nottingham Forest,West Ham,0,3,FT,3,Away Win
+1378989,2025-08-31 18:00:00+00:00,Premier League,2025,Aston Villa,Crystal Palace,0,3,FT,3,Away Win
+1379008,2025-09-13 16:30:00+00:00,Premier League,2025,West Ham,Tottenham,0,3,FT,3,Away Win
+1379045,2025-10-18 11:30:00+00:00,Premier League,2025,Nottingham Forest,Chelsea,0,3,FT,3,Away Win
+1379018,2025-09-20 14:00:00+00:00,Premier League,2025,Wolves,Leeds,1,3,FT,4,Away Win
+1379021,2025-09-27 14:00:00+00:00,Premier League,2025,Chelsea,Brighton,1,3,FT,4,Away Win
+1378987,2025-08-25 19:00:00+00:00,Premier League,2025,Newcastle,Liverpool,2,3,FT,5,Away Win
+1378998,2025-08-30 14:00:00+00:00,Premier League,2025,Wolves,Everton,2,3,FT,5,Away Win
+1379041,2025-10-18 14:00:00+00:00,Premier League,2025,Crystal Palace,Bournemouth,3,3,FT,6,Draw
+1378975,2025-08-16 16:30:00+00:00,Premier League,2025,Wolves,Manchester City,0,4,FT,4,Away Win
+1378988,2025-08-22 19:00:00+00:00,Premier League,2025,West Ham,Chelsea,1,5,FT,6,Away Win
