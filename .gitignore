@@ -1,13 +1,19 @@
-data/*
-config/credentials.json
-.DS_Store
-.DS_Store
-config/football-prediction-2025-c554bb4a599d.json
-logs/
-models/
-logs/
+# --- General ---
+__pycache__/
+*.pyc
+*.pyo
+*.DS_Store
+
+# --- Data & models ---
 data/
-*.pkl
-*.csv
-*.png
-*.md
+logs/
+models/*.pkl
+reports/
+notebooks/*.ipynb_checkpoints/
+
+# --- Secrets ---
+config/api_football_key.txt
+
+# --- Streamlit / Cache ---
+.streamlit/
+.env
