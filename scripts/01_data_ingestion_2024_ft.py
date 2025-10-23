@@ -84,25 +84,25 @@ if __name__ == "__main__":
     total_matches = 0
     for league in LEAGUES:
         try:
-            logging.info(f"Descargando {league['name']} 2024...")
-            fixtures = fetch_fixtures(league["id"], 2024)
+            logging.info(f"Descargando {league['name']} 2024/25...")
+            fixtures = fetch_fixtures(league["id"], 2025)  # Cambiar a season=2025
             if not fixtures:
-                print(f"⚠️ No se obtuvieron partidos para {league['name']} 2024")
+                print(f"⚠️ No se obtuvieron partidos para {league['name']} 2024/25")
                 continue
-            raw_filename = f"fixtures_league_{league['id']}_2024_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            raw_filename = f"fixtures_league_{league['id']}_2024_25_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             raw_path = os.path.join(RAW_DATA_PATH, raw_filename)
             save_json(fixtures, raw_path)
             processed = process_fixtures(fixtures)
-            processed_filename = f"processed_league_{league['id']}_2024.json"
+            processed_filename = f"processed_league_{league['id']}_2024_25.json"
             processed_path = os.path.join(PROCESSED_PATH, processed_filename)
             save_json(processed, processed_path)
             jsonl_path = convert_to_jsonl(processed_path)
-            print(f"✅ Guardados {len(fixtures)} partidos de {league['name']} 2024")
+            print(f"✅ Guardados {len(fixtures)} partidos de {league['name']} 2024/25")
             print(f"🗃 Crudos: {raw_path}")
             print(f"🧹 Procesados: {processed_path}")
             print(f"📦 JSONL listo para BigQuery: {jsonl_path}")
             total_matches += len(fixtures)
         except Exception as e:
-            logging.error(f"Error en {league['name']} 2024: {e}")
-            print(f"❌ Error en {league['name']} 2024: {e}")
+            logging.error(f"Error en {league['name']} 2024/25: {e}")
+            print(f"❌ Error en {league['name']} 2024/25: {e}")
     print(f"📊 Total de partidos descargados: {total_matches}")
