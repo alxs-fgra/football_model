@@ -3,50 +3,42 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-# ==================================================
-# ⚙️ CONFIGURACIÓN DE RUTAS ROBUSTA
-# ==================================================
-# Detecta el path base incluso si el runner cambia el working dir
-current_dir = os.path.dirname(os.path.abspath(__file__))
-base_candidates = [
-    os.path.abspath(os.path.join(current_dir, "..")),
-    os.path.abspath(os.path.join(current_dir, "../football_model")),
-    os.path.abspath(os.path.join(current_dir, "../../football_model")),
-]
-
-PROCESSED_DIR = None
-for path in base_candidates:
-    test_path = os.path.join(path, "data", "processed")
-    if os.path.exists(test_path):
-        PROCESSED_DIR = test_path
-        break
-
-if PROCESSED_DIR is None:
-    raise FileNotFoundError("❌ No se encontró la carpeta 'data/processed' en ninguna ubicación candidata.")
-
-REPORTS_DIR = os.path.join(os.path.dirname(PROCESSED_DIR), "reports")
-os.makedirs(REPORTS_DIR, exist_ok=True)
-
 def log(msg):
     print(f"🧠 {msg}")
 
 # ==================================================
-# 🔍 BUSCA EL CSV MÁS RECIENTE
+# 🔍 AUTO-DETECTA RUTA BASE
 # ==================================================
-def get_latest_dataset():
-    log(f"🔎 Buscando datasets en: {PROCESSED_DIR}")
-    files = [f for f in os.listdir(PROCESSED_DIR) if f.endswith(".csv")]
+def find_processed_dir():
+    search_depth = 4
+    cwd = os.getcwd()
+    log(f"🔎 Current working directory: {cwd}")
+
+    for root, dirs, files in os.walk(cwd):
+        if "data" in dirs:
+            candidate = os.path.join(root, "data", "processed")
+            if os.path.exists(candidate):
+                log(f"✅ Found processed directory at: {candidate}")
+                return candidate
+        if root.count(os.sep) - cwd.count(os.sep) >= search_depth:
+            break
+    raise FileNotFoundError("❌ Could not locate any 'data/processed' directory in the project tree.")
+
+# ==================================================
+# 📊 EVALUACIÓN DE MODELOS
+# ==================================================
+def get_latest_dataset(processed_dir):
+    log(f"🔍 Searching for CSV files in: {processed_dir}")
+    files = [f for f in os.listdir(processed_dir) if f.endswith(".csv")]
     if not files:
-        raise FileNotFoundError(f"❌ No se encontró ningún dataset CSV en {PROCESSED_DIR}")
-    latest = max(files, key=lambda f: os.path.getmtime(os.path.join(PROCESSED_DIR, f)))
-    return os.path.join(PROCESSED_DIR, latest)
+        raise FileNotFoundError(f"❌ No dataset found in {processed_dir}")
+    latest = max(files, key=lambda f: os.path.getmtime(os.path.join(processed_dir, f)))
+    latest_path = os.path.join(processed_dir, latest)
+    log(f"📂 Latest dataset detected: {latest_path}")
+    return latest_path
 
-# ==================================================
-# 📊 EVALUACIÓN Y REPORTES
-# ==================================================
-def evaluate(df):
-    log(f"📊 Evaluando dataset con {len(df)} registros...")
-
+def evaluate_dataset(df, reports_dir):
+    log(f"📊 Evaluating dataset with {len(df)} records...")
     stats = {
         "total_matches": len(df),
         "home_wins": (df["result"] == 1).sum(),
@@ -55,35 +47,36 @@ def evaluate(df):
         "btts_yes": df["btts"].sum(),
         "over_2.5_yes": df["over_2.5"].sum()
     }
-
     df_summary = pd.DataFrame([stats])
     log(df_summary.to_string(index=False))
 
-    # 📈 Distribución de resultados
+    os.makedirs(reports_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # 🧾 Save summary CSV
+    summary_path = os.path.join(reports_dir, f"dataset_summary_{timestamp}.csv")
+    df_summary.to_csv(summary_path, index=False)
+    log(f"✅ Saved summary: {summary_path}")
+
+    # 📈 Chart
     plt.figure(figsize=(6, 4))
     df["result"].value_counts().sort_index().plot(kind="bar", color=["green", "gray", "red"])
-    plt.title("Distribución de Resultados (1=Local, 0=Empate, -1=Visita)")
-    plt.xlabel("Resultado")
-    plt.ylabel("Frecuencia")
+    plt.title("Distribution of Results (1=Home, 0=Draw, -1=Away)")
+    plt.xlabel("Result")
+    plt.ylabel("Frequency")
     plt.tight_layout()
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    chart_path = os.path.join(REPORTS_DIR, f"result_distribution_{timestamp}.png")
+    chart_path = os.path.join(reports_dir, f"result_distribution_{timestamp}.png")
     plt.savefig(chart_path)
-    log(f"📊 Gráfica guardada: {chart_path}")
-
-    # 🧾 Guarda resumen
-    summary_path = os.path.join(REPORTS_DIR, f"dataset_summary_{timestamp}.csv")
-    df_summary.to_csv(summary_path, index=False)
-    log(f"✅ Resumen guardado: {summary_path}")
+    log(f"📊 Saved chart: {chart_path}")
 
 # ==================================================
 # 🚀 MAIN
 # ==================================================
 if __name__ == "__main__":
-    latest_file = get_latest_dataset()
-    log(f"📂 Cargando dataset más reciente: {latest_file}")
+    processed_dir = find_processed_dir()
+    reports_dir = os.path.join(os.path.dirname(processed_dir), "reports")
 
-    df = pd.read_csv(latest_file)
-    evaluate(df)
-    log("✅ Evaluación completada exitosamente.")
+    latest_dataset = get_latest_dataset(processed_dir)
+    df = pd.read_csv(latest_dataset)
+    evaluate_dataset(df, reports_dir)
+    log("✅ Evaluation completed successfully.")
