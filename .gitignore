@@ -34,3 +34,25 @@ reports/
 
 # CatBoost temporary files
 catboost_info/
+
+# Data & artifacts
+data/
+logs/
+reports/
+models/
+catboost_info/
+*.pkl
+*.jsonl
+*.csv
+
+# Python cache & environments
+__pycache__/
+*.pyc
+.venv/
+.env/
+.ipynb_checkpoints/
+
+# OS / editor junk
+.DS_Store
+.vscode/
+.idea/
