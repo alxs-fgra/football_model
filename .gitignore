@@ -9,7 +9,7 @@ Thumbs.db
 __pycache__/
 *.pyc
 
-# Virtual environments
+# Entornos virtuales
 venv/
 .env/
 
@@ -17,14 +17,17 @@ venv/
 *.tmp
 *.bak
 
-# Data sin procesar o privada (mantén solo si no quieres subirlos)
-data/raw/
-data/interim/
+# Configuración y credenciales sensibles
+config/
 
-# ✅ Permitimos logs y modelos para el pipeline
-# logs/
-# models/
+# Data (mantén privada, datasets pesados)
+data/
 
-# Otras carpetas temporales de IDE
+# Logs y modelos (se pueden subir con git add -f si lo deseas)
+logs/
+models/
+reports/
+
+# Archivos de IDE o editor
 .idea/
 .vscode/
