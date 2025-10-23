@@ -1,119 +1,130 @@
 import os
-import sys
+import json
 import pandas as pd
-import numpy as np
-import logging
-from google.cloud import bigquery
+from datetime import datetime
 
-# ---------------- CONFIGURACIÓN ---------------- #
-CREDENTIALS_PATH = '/Users/B-yond/Documents/Sports Machine Learning/football_model/config/football-prediction-2025-c554bb4a599d.json'
+# ==========================================
+#  ⚙️ CONFIGURACIÓN GENERAL
+# ==========================================
+RAW_DIR = "data/raw"
+PROCESSED_DIR = "data/processed"
+LOG_PATH = "logs/feature_engineering.log"
 
-# Logger
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-log = logging.getLogger(__name__)
+os.makedirs(PROCESSED_DIR, exist_ok=True)
+os.makedirs("logs", exist_ok=True)
 
-# Liga (por defecto: La Liga)
-LEAGUE = sys.argv[1] if len(sys.argv) > 1 else "La Liga"
-OUTPUT_PATH = f"data/processed/features_{LEAGUE.lower().replace(' ', '_')}_2024_25.csv"
 
-# ---------------- FUNCIONES AUXILIARES ---------------- #
+def log_message(message):
+    """Simple logger con timestamp."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    line = f"{timestamp} - INFO - {message}"
+    print(line)
+    with open(LOG_PATH, "a") as log:
+        log.write(line + "\n")
 
-def load_data_from_bq(league: str) -> pd.DataFrame:
-    """Carga datos de BigQuery para una liga específica."""
+
+# ==========================================
+#  🧩 FUNCIÓN PRINCIPAL DE FEATURE ENGINEERING
+# ==========================================
+def process_league_data(league_id):
+    """
+    Procesa todos los años disponibles para una liga dada (usando los archivos descargados en 01_data_ingestion.py).
+    """
+    log_message(f"Iniciando feature engineering para la liga {league_id}...")
+    processed_files = []
+
+    for filename in sorted(os.listdir(RAW_DIR)):
+        if f"league_{league_id}" in filename and filename.endswith(".json"):
+            raw_path = os.path.join(RAW_DIR, filename)
+            try:
+                with open(raw_path, "r") as f:
+                    data = json.load(f)
+            except json.JSONDecodeError:
+                log_message(f"⚠️ Error al leer {filename}, archivo JSON inválido.")
+                continue
+
+            matches = []
+            for match in data.get("response", []):
+                info = match.get("fixture", {})
+                teams = match.get("teams", {})
+                goals = match.get("goals", {})
+
+                matches.append({
+                    "fixture_id": info.get("id"),
+                    "date": info.get("date"),
+                    "league_id": match.get("league", {}).get("id"),
+                    "season": match.get("league", {}).get("season"),
+                    "home_team": teams.get("home", {}).get("name"),
+                    "away_team": teams.get("away", {}).get("name"),
+                    "home_goals": goals.get("home"),
+                    "away_goals": goals.get("away"),
+                    "winner": (
+                        "draw" if goals.get("home") == goals.get("away")
+                        else "home" if goals.get("home") > goals.get("away")
+                        else "away"
+                    ),
+                })
+
+            df = pd.DataFrame(matches)
+
+            # Feature engineering adicional
+            df["total_goals"] = df["home_goals"] + df["away_goals"]
+            df["goal_diff"] = (df["home_goals"] - df["away_goals"]).abs()
+            df["is_draw"] = (df["home_goals"] == df["away_goals"]).astype(int)
+
+            # Guardar CSV procesado
+            processed_name = f"processed_{filename.replace('.json', '.jsonl')}"
+            processed_path = os.path.join(PROCESSED_DIR, processed_name)
+            df.to_json(processed_path, orient="records", lines=True)
+
+            log_message(f"✅ Procesado: {processed_name} con {len(df)} partidos.")
+            processed_files.append(processed_path)
+
+    log_message(f"🏁 Finalizado feature engineering para liga {league_id}. Total de archivos procesados: {len(processed_files)}")
+    return processed_files
+
+
+# ==========================================
+#  ☁️ CARGA OPCIONAL A BIGQUERY (si existen credenciales)
+# ==========================================
+def upload_to_bigquery(processed_files):
+    """Carga los archivos procesados a BigQuery solo si existen credenciales GCP."""
+    GCP_CREDENTIALS = "config/football-prediction-2025-c55b44ba599d.json"
+
+    if not os.path.exists(GCP_CREDENTIALS):
+        log_message("⚠️ No se encontraron credenciales de BigQuery. Saltando carga remota...")
+        return
+
     try:
-        log.info(f"Conectando a BigQuery y extrayendo datos para {league} (2024/25)...")
-        client = bigquery.Client.from_service_account_json(CREDENTIALS_PATH)
-        query = f"""
-        SELECT fixture_id, date, league, season, home_team, away_team,
-               CAST(goals_home AS INT64) AS goals_home,
-               CAST(goals_away AS INT64) AS goals_away,
-               status
-        FROM `football_ds.fixtures_2024_ft`
-        WHERE league = '{league}'
-          AND status = 'FT'
-        """
-        df = client.query(query).to_dataframe()
-        log.info(f"✅ Datos cargados: {df.shape[0]} filas")
-        return df
+        from google.cloud import bigquery
+        client = bigquery.Client.from_service_account_json(GCP_CREDENTIALS)
+        log_message("✅ Conectado a BigQuery correctamente.")
+
+        dataset_id = "football_data"
+        table_id = "matches"
+
+        for file_path in processed_files:
+            df = pd.read_json(file_path, lines=True)
+            client.load_table_from_dataframe(df, f"{dataset_id}.{table_id}")
+            log_message(f"📤 Subido {os.path.basename(file_path)} a BigQuery.")
+
     except Exception as e:
-        log.error(f"❌ Error al cargar datos desde BigQuery: {e}")
-        sys.exit(1)
+        log_message(f"⚠️ Error al conectar con BigQuery: {e}")
 
-def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.dropna(subset=['goals_home', 'goals_away']).copy()
-    df = df.drop_duplicates(subset=['fixture_id'])
-    df['goals_home'] = df['goals_home'].astype(int)
-    df['goals_away'] = df['goals_away'].astype(int)
-    df['total_goals'] = df['goals_home'] + df['goals_away']
-    df['date'] = pd.to_datetime(df['date'])
-    df.sort_values('date', inplace=True)
-    return df
 
-def add_avg_goals(df: pd.DataFrame) -> pd.DataFrame:
-    log.info("⚙️ Calculando promedios de goles (2021–2023)...")
-    recent = df[df['season'] >= 2021]
-    home_avg = recent.groupby('home_team')['goals_home'].mean().rename('avg_goals_home')
-    away_avg = recent.groupby('away_team')['goals_away'].mean().rename('avg_goals_away')
-    df = df.merge(home_avg, left_on='home_team', right_index=True, how='left')
-    df = df.merge(away_avg, left_on='away_team', right_index=True, how='left')
-    return df
-
-def calculate_form(team, date, df, n=5):
-    team_matches = df[(df['home_team'] == team) | (df['away_team'] == team)]
-    team_matches = team_matches[team_matches['date'] < date].sort_values('date', ascending=False).head(n)
-    if team_matches.empty:
-        return np.nan
-    points = 0
-    for _, r in team_matches.iterrows():
-        if r['home_team'] == team:
-            points += 3 if r['goals_home'] > r['goals_away'] else (1 if r['goals_home'] == r['goals_away'] else 0)
-        else:
-            points += 3 if r['goals_away'] > r['goals_home'] else (1 if r['goals_away'] == r['goals_home'] else 0)
-    return points / len(team_matches)
-
-def add_form_features(df: pd.DataFrame) -> pd.DataFrame:
-    log.info("⚙️ Calculando forma reciente (últimos 5 partidos)...")
-    df['home_form'] = df.apply(lambda x: calculate_form(x['home_team'], x['date'], df), axis=1)
-    df['away_form'] = df.apply(lambda x: calculate_form(x['away_team'], x['date'], df), axis=1)
-    return df
-
-# Mini-cache interno (seguro, no usa @lru_cache)
-_head_to_head_cache = {}
-
-def head_to_head(home, away, date, df, n=5):
-    """Promedio de goles en los últimos N enfrentamientos directos."""
-    key = tuple(sorted([home, away]))  # clave única sin importar el orden
-    if key in _head_to_head_cache:
-        past_matches = _head_to_head_cache[key]
-    else:
-        past_matches = df[((df['home_team'] == home) & (df['away_team'] == away)) |
-                          ((df['home_team'] == away) & (df['away_team'] == home))].copy()
-        _head_to_head_cache[key] = past_matches
-
-    h2h = past_matches[past_matches['date'] < date].sort_values('date', ascending=False).head(n)
-    return h2h['total_goals'].mean() if not h2h.empty else np.nan
-
-def add_h2h(df: pd.DataFrame) -> pd.DataFrame:
-    log.info("⚙️ Calculando head-to-head promedio (últimos 5 partidos)...")
-    df['h2h_avg_goals'] = df.apply(lambda x: head_to_head(x['home_team'], x['away_team'], x['date'], df), axis=1)
-    return df
-
-# ---------------- MAIN ---------------- #
-
+# ==========================================
+#  🚀 MAIN
+# ==========================================
 if __name__ == "__main__":
-    log.info(f"🚀 Iniciando feature engineering para {LEAGUE} (2024/25)...")
+    log_message("🧠 Iniciando feature engineering global...")
 
-    df = load_data_from_bq(LEAGUE)
-    df = clean_data(df)
-    df = add_avg_goals(df)
-    df = add_form_features(df)
-    df = add_h2h(df)
-    df['is_home'] = 1
+    # Procesar ligas principales
+    leagues = [140, 78, 135]  # Ejemplo: La Liga, Bundesliga, Serie A
+    all_processed = []
+    for league in leagues:
+        all_processed.extend(process_league_data(league))
 
-    os.makedirs('data/processed', exist_ok=True)
-    df.to_csv(OUTPUT_PATH, index=False)
-    log.info(f"✅ Features 2024/25 guardadas en {OUTPUT_PATH}")
+    # Intentar subir a BigQuery solo si aplica
+    upload_to_bigquery(all_processed)
+
+    log_message("✅ Feature engineering completado exitosamente.")
