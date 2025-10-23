@@ -1,157 +1,175 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-03_modeling.py — Entrenamiento de modelos 1X2, BTTS y Over/Under 2.5
-Autor: Alexis Figueroa
-Versión: Paso 9 — Expansión multi-mercado
-"""
-
-# ==========================================================
-# IMPORTS
-# ==========================================================
+# =====================================
+# ⚽ MODEL TRAINING PIPELINE (Safe Feature Selection + Evaluation)
+# =====================================
 import os
 import joblib
-import numpy as np
 import pandas as pd
-import datetime as dt
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report, log_loss, roc_auc_score
+import numpy as np
+from datetime import datetime
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+)
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from imblearn.over_sampling import SMOTE
-import logging
 
-# ==========================================================
-# CONFIGURACIÓN GLOBAL
-# ==========================================================
-os.makedirs("models", exist_ok=True)
-os.makedirs("logs", exist_ok=True)
+# =====================================
+# 📁 CONFIG
+# =====================================
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data", "processed")
+MODEL_DIR = os.path.join(BASE_DIR, "models")
+LOG_DIR = os.path.join(BASE_DIR, "logs")
+os.makedirs(MODEL_DIR, exist_ok=True)
+os.makedirs(LOG_DIR, exist_ok=True)
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-)
-log = logging.getLogger(__name__)
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+LOG_FILE = os.path.join(LOG_DIR, "model_training_log.csv")
 
-# ==========================================================
-# CARGA DE DATOS
-# ==========================================================
-DATA_PATH = "data/processed/features_la_liga_2015_2023.csv"
-if not os.path.exists(DATA_PATH):
-    raise FileNotFoundError(f"❌ No se encontró el archivo {DATA_PATH}")
+# =====================================
+# 📂 LOAD DATASET (latest features file)
+# =====================================
+files = [f for f in os.listdir(DATA_DIR) if f.startswith("features_la_liga")]
+if not files:
+    raise SystemExit("❌ No dataset found in data/processed/")
+files = sorted(files, key=lambda x: os.path.getmtime(os.path.join(DATA_DIR, x)), reverse=True)
+DATA_PATH = os.path.join(DATA_DIR, files[0])
 
-log.info(f"✅ Archivo detectado: {DATA_PATH}")
+print(f"📂 Using dataset: {DATA_PATH}")
 df = pd.read_csv(DATA_PATH)
-log.info(f"✅ Datos cargados correctamente: {len(df):,} filas")
 
-# ==========================================================
-# FEATURE ENGINEERING
-# ==========================================================
-log.info("🧩 Aplicando feature engineering...")
-df["total_goals"] = df["goals_home"] + df["goals_away"]
-df["goal_diff"] = df["goals_home"] - df["goals_away"]
-df["month"] = pd.to_datetime(df["date"]).dt.month
+# =====================================
+# 🧠 AUTO-GENERATE TARGETS IF MISSING
+# =====================================
+required_targets = ["result", "btts", "over_2.5"]
+missing_targets = [col for col in required_targets if col not in df.columns]
 
-# Promedio móvil de goles por equipo local (últimos 5 partidos)
-df["rolling_avg_goals"] = (
-    df.groupby("home_team")["total_goals"]
-    .rolling(5, min_periods=1)
-    .mean()
-    .reset_index(level=0, drop=True)
-)
+if missing_targets:
+    print(f"⚠️ Missing targets: {missing_targets} → Generating automatically...")
+    
+    if {"goals_home", "goals_away", "total_goals"}.issubset(df.columns):
+        df["result"] = df.apply(
+            lambda row: 1 if row["goals_home"] > row["goals_away"]
+            else -1 if row["goals_home"] < row["goals_away"]
+            else 0,
+            axis=1,
+        )
+        df["btts"] = df.apply(
+            lambda row: 1 if (row["goals_home"] > 0 and row["goals_away"] > 0) else 0,
+            axis=1,
+        )
+        df["over_2.5"] = df["total_goals"].apply(lambda x: 1 if x > 2.5 else 0)
 
-# ==========================================================
-# TARGETS PRINCIPALES
-# ==========================================================
-log.info("🎯 Generando targets adicionales (BTTS, Over/Under 2.5)...")
-df["result"] = df.apply(
-    lambda x: 1 if x["goals_home"] > x["goals_away"]
-    else (0 if x["goals_home"] == x["goals_away"] else -1), axis=1)
-df["btts"] = ((df["goals_home"] > 0) & (df["goals_away"] > 0)).astype(int)
-df["over_2.5"] = (df["total_goals"] > 2.5).astype(int)
+        # 💾 Save auto-generated dataset
+        auto_path = os.path.join(DATA_DIR, f"features_la_liga_with_targets_auto_{timestamp}.csv")
+        df.to_csv(auto_path, index=False)
+        print(f"✅ Targets generated and saved to → {auto_path}")
+    else:
+        raise SystemExit("❌ Cannot generate targets: missing goal columns (goals_home / goals_away / total_goals).")
+else:
+    print("✅ All target columns found in dataset.")
 
-# ==========================================================
-# SELECCIÓN DE FEATURES
-# ==========================================================
-features = [
-    "avg_goals_home", "avg_goals_away", "home_form", "away_form",
-    "h2h_avg_goals", "is_home", "month", "goal_diff", "rolling_avg_goals"
-]
-X = df[features].values
+# =====================================
+# 🧩 DEFINE FEATURES & TARGETS
+# =====================================
+# Remove columns that would leak real outcomes
+leakage_cols = ["result", "btts", "over_2.5", "goals_home", "goals_away", "total_goals"]
+numeric_df = df.select_dtypes(include=[np.number])
+features = [col for col in numeric_df.columns if col not in leakage_cols]
 
-# ==========================================================
-# SPLIT TRAIN/VALIDATION
-# ==========================================================
-train_mask = df["season"] <= 2022
-val_mask = df["season"] == 2023
-log.info(f"📊 Split: Train={train_mask.sum()} | Val={val_mask.sum()}")
+if not features:
+    raise SystemExit("❌ No numeric features found to train models!")
 
-# Imputación y escalado
-imputer = SimpleImputer(strategy="mean")
-scaler = StandardScaler()
-X_train = scaler.fit_transform(imputer.fit_transform(X[train_mask]))
-X_val = scaler.transform(imputer.transform(X[val_mask]))
+print(f"✅ Selected {len(features)} valid features (no leakage): {features}")
 
-# ==========================================================
-# CONFIGURACIÓN DE MODELOS
-# ==========================================================
-from sklearn.model_selection import GridSearchCV
-timestamp = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-
-models = {
-    "1x2": LogisticRegression(max_iter=2000, multi_class="multinomial", class_weight="balanced"),
-    "btts": RandomForestClassifier(random_state=42),
-    "over_2.5": RandomForestClassifier(random_state=42)
+target_map = {
+    "1x2": "result",
+    "btts": "btts",
+    "over_2.5": "over_2.5",
 }
-targets = {"1x2": "result", "btts": "btts", "over_2.5": "over_2.5"}
 
-# ==========================================================
-# ENTRENAMIENTO DE MODELOS
-# ==========================================================
-for name, model in models.items():
-    y_train = df[targets[name]][train_mask].values
-    y_val = df[targets[name]][val_mask].values
+# =====================================
+# 📊 METRICS FUNCTION
+# =====================================
+def evaluate_model(model, X_test, y_test, model_name):
+    y_pred = model.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, average="macro", zero_division=0)
+    rec = recall_score(y_test, y_pred, average="macro", zero_division=0)
+    f1 = f1_score(y_test, y_pred, average="macro", zero_division=0)
+    cm = confusion_matrix(y_test, y_pred)
 
-    # Balanceo para draws (solo aplica en 1X2)
-    if name == "1x2":
-        draw_count = np.sum(y_train == 0)
-        safe_target = min(900, max(draw_count, 400))
-        smote = SMOTE(random_state=42, sampling_strategy={0: safe_target})
-        X_train_bal, y_train_bal = smote.fit_resample(X_train, y_train)
-    else:
-        X_train_bal, y_train_bal = X_train, y_train
+    print(f"\n📊 [{model_name}] Metrics:")
+    print(f"   - Accuracy : {acc:.3f}")
+    print(f"   - Precision: {prec:.3f}")
+    print(f"   - Recall   : {rec:.3f}")
+    print(f"   - F1 Score : {f1:.3f}")
+    print("   - Confusion Matrix:")
+    print(cm)
 
-    log.info(f"🚀 Entrenando modelo: {name}")
-    if isinstance(model, LogisticRegression):
-        param_grid = {"C": [0.001, 0.005, 0.01], "solver": ["lbfgs", "saga"]}
-    else:
-        param_grid = {"n_estimators": [100, 200], "max_depth": [None, 10, 20]}
+    return acc, prec, rec, f1
 
-    grid = GridSearchCV(model, param_grid, cv=5, n_jobs=-1)
-    grid.fit(X_train_bal, y_train_bal)
-    best_model = grid.best_estimator_
+# =====================================
+# ⚙️ TRAINING LOOP
+# =====================================
+logs = []
 
-    # Validación
-    y_pred = best_model.predict(X_val)
-    y_pred_proba = best_model.predict_proba(X_val)
-    acc = (y_pred == y_val).mean()
-    logloss = log_loss(y_val, y_pred_proba)
-    rocauc = roc_auc_score(y_val, y_pred_proba[:, 1]) if len(np.unique(y_val)) == 2 else None
+for key, target_col in target_map.items():
+    print(f"\n🏟️ Training model for: {key.upper()}")
 
-    log.info(f"✅ {name} | Accuracy={acc:.3f} | LogLoss={logloss:.3f} | ROC-AUC={rocauc}")
+    X = df[features]
+    y = df[target_col]
 
-    # Guardar modelo
-    path = f"models/{name}_model_{timestamp}.pkl"
-    joblib.dump(best_model, path)
-    log.info(f"💾 Modelo guardado en {path}")
+    imputer = SimpleImputer(strategy="median")
+    X = imputer.fit_transform(X)
 
-# ==========================================================
-# GUARDAR PREPROCESADORES
-# ==========================================================
-preproc_path = f"models/scaler_imputer_{timestamp}.pkl"
-joblib.dump({"imputer": imputer, "scaler": scaler}, preproc_path)
-log.info(f"🧩 Preprocesadores guardados en {preproc_path}")
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
 
-log.info("🏁 ENTRENAMIENTO MULTI-MERCADO COMPLETADO CON ÉXITO")
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    model = LogisticRegression(max_iter=500) if key == "1x2" else RandomForestClassifier(
+        n_estimators=150, random_state=42
+    )
+
+    model.fit(X_train, y_train)
+    acc, prec, rec, f1 = evaluate_model(model, X_test, y_test, key)
+
+    # Save model
+    model_filename = f"{key}_model_{timestamp}.pkl"
+    model_path = os.path.join(MODEL_DIR, model_filename)
+    joblib.dump(model, model_path)
+
+    print(f"💾 Model saved: {model_path}")
+
+    logs.append({
+        "timestamp": timestamp,
+        "model": key,
+        "accuracy": acc,
+        "precision": prec,
+        "recall": rec,
+        "f1": f1,
+        "dataset": os.path.basename(DATA_PATH),
+        "features": len(features)
+    })
+
+# =====================================
+# 🧾 SAVE LOG
+# =====================================
+df_logs = pd.DataFrame(logs)
+if not os.path.exists(LOG_FILE):
+    df_logs.to_csv(LOG_FILE, index=False)
+else:
+    df_logs.to_csv(LOG_FILE, mode="a", header=False, index=False)
+
+print("\n✅ Training completed successfully!")
+print(f"📊 Metrics logged in: {LOG_FILE}")
