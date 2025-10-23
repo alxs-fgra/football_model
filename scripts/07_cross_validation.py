@@ -17,9 +17,6 @@ DATA_DIR = "data/processed"
 LOG_DIR = "logs"
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# ===============================
-# Helper: Get latest dataset
-# ===============================
 def get_latest_dataset():
     csv_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".csv")]
     if not csv_files:
@@ -27,9 +24,6 @@ def get_latest_dataset():
     latest = max(csv_files, key=lambda x: os.path.getmtime(os.path.join(DATA_DIR, x)))
     return os.path.join(DATA_DIR, latest)
 
-# ===============================
-# Helper: Compute metrics
-# ===============================
 def compute_cv_metrics(model, X, y):
     scoring = {
         "accuracy": make_scorer(accuracy_score),
@@ -37,15 +31,11 @@ def compute_cv_metrics(model, X, y):
         "recall": make_scorer(recall_score, average="weighted", zero_division=0),
         "f1": make_scorer(f1_score, average="weighted", zero_division=0),
     }
-
     kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     results = {metric: np.mean(cross_val_score(model, X, y, cv=kfold, scoring=sc))
                for metric, sc in scoring.items()}
     return results
 
-# ===============================
-# MAIN
-# ===============================
 if __name__ == "__main__":
     dataset_path = get_latest_dataset()
     print(f"📂 Using dataset: {dataset_path}")
@@ -57,17 +47,22 @@ if __name__ == "__main__":
         if col not in df.columns:
             raise ValueError(f"Missing target column: {col}")
 
-    # Detect potential leakage columns
+    # Detect and remove leakage columns
     leakage_cols = [c for c in ["goals_home", "goals_away", "total_goals"] if c in df.columns]
     if leakage_cols:
         print(f"⚠️ Detected potential leakage columns: {leakage_cols}")
 
-    # Base features
-    base_features = [c for c in df.columns if c not in expected_targets + leakage_cols + ["winner"]]
-    if "winner" in df.columns:
-        df["winner"] = LabelEncoder().fit_transform(df["winner"].astype(str))
-        base_features.append("winner")
+    # Drop non-numeric text-based columns that are identifiers
+    drop_cols = ["date", "home_team", "away_team"]
+    df = df.drop(columns=[c for c in drop_cols if c in df.columns])
 
+    # Label encode all remaining object (string) columns
+    for col in df.select_dtypes(include=["object"]).columns:
+        df[col] = LabelEncoder().fit_transform(df[col].astype(str))
+        print(f"🔤 Encoded column: {col}")
+
+    # Define features
+    base_features = [c for c in df.columns if c not in expected_targets + leakage_cols]
     print(f"✅ Using {len(base_features)} features: {base_features}")
 
     results = []
@@ -75,11 +70,9 @@ if __name__ == "__main__":
 
     for target in expected_targets:
         print(f"\n🏟️ Cross-validating for target: {target.upper()}")
-
         X = df[base_features]
         y = df[target]
 
-        # Preprocessing pipeline
         preprocessor = ColumnTransformer([
             ("num", SimpleImputer(strategy="most_frequent"), X.columns)
         ])
@@ -91,15 +84,11 @@ if __name__ == "__main__":
         ])
 
         metrics = compute_cv_metrics(pipeline, X, y)
-
         print(f"📊 [{target}] Mean Metrics (5-Fold):")
         for k, v in metrics.items():
             print(f"   - {k.capitalize():9}: {v:.3f}")
 
-        results.append({
-            "target": target,
-            **metrics
-        })
+        results.append({"target": target, **metrics})
 
     results_df = pd.DataFrame(results)
     output_path = os.path.join(LOG_DIR, f"cross_validation_results_{timestamp}.csv")
