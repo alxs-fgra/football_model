@@ -43,8 +43,11 @@ def process_league_data(league_id):
                 log_message(f"⚠️ Error al leer {filename}, archivo JSON inválido.")
                 continue
 
+            # ✅ FIX: manejar tanto lista como diccionario
+            matches_raw = data if isinstance(data, list) else data.get("response", [])
+
             matches = []
-            for match in data.get("response", []):
+            for match in matches_raw:
                 info = match.get("fixture", {})
                 teams = match.get("teams", {})
                 goals = match.get("goals", {})
