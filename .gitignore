@@ -17,3 +17,5 @@ config/api_football_key.txt
 # --- Streamlit / Cache ---
 .streamlit/
 .env
+config/credentials.json
+config/football-prediction-2025-c554bb4a599d.json
