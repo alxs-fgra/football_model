@@ -1,64 +1,53 @@
-#!/usr/bin/env python3
-# ============================================
-# ⚽ SCRIPT 05 - ADD TARGET COLUMNS
-# ============================================
 import os
 import pandas as pd
 from datetime import datetime
 
-# ==========================
-# 📁 PATH CONFIG
-# ==========================
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INPUT_FILE = os.path.join(BASE_DIR, "data", "processed", "features_la_liga_2015_2023.csv")
+# ==========================================
+# ⚙️ CONFIGURACIÓN
+# ==========================================
+PROCESSED_DIR = "data/processed"
+OUTPUT_DIR = "data/processed"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-OUTPUT_FILE = os.path.join(
-    BASE_DIR, "data", "processed", f"features_la_liga_with_targets_{timestamp}.csv"
-)
+def log(msg):
+    print(f"🧠 {msg}")
 
-# ==========================
-# 🧠 LOAD DATA
-# ==========================
-print(f"📂 Loading dataset: {INPUT_FILE}")
-df = pd.read_csv(INPUT_FILE)
+# ==========================================
+# 🔍 OBTENER ARCHIVO MÁS RECIENTE
+# ==========================================
+def get_latest_processed_file():
+    files = [f for f in os.listdir(PROCESSED_DIR) if f.startswith("processed_") and f.endswith(".jsonl")]
+    if not files:
+        raise FileNotFoundError("❌ No se encontraron archivos procesados en data/processed/")
+    latest_file = max(files, key=lambda f: os.path.getmtime(os.path.join(PROCESSED_DIR, f)))
+    return os.path.join(PROCESSED_DIR, latest_file)
 
-required_cols = ["goals_home", "goals_away", "total_goals"]
-for col in required_cols:
-    if col not in df.columns:
-        raise ValueError(f"❌ Missing required column: {col}")
+# ==========================================
+# 🧮 GENERAR TARGETS
+# ==========================================
+def generate_targets(df):
+    df["result"] = df.apply(
+        lambda x: 1 if x["home_goals"] > x["away_goals"] else 0 if x["home_goals"] == x["away_goals"] else -1, axis=1
+    )
+    df["btts"] = df.apply(lambda x: 1 if (x["home_goals"] > 0 and x["away_goals"] > 0) else 0, axis=1)
+    df["over_2.5"] = df.apply(lambda x: 1 if (x["home_goals"] + x["away_goals"]) > 2.5 else 0, axis=1)
+    return df
 
-# ==========================
-# 🧮 GENERATE TARGET COLUMNS
-# ==========================
-print("🧮 Generating target columns...")
+# ==========================================
+# 🚀 MAIN
+# ==========================================
+if __name__ == "__main__":
+    latest_file = get_latest_processed_file()
+    log(f"📂 Cargando dataset más reciente: {latest_file}")
 
-# Resultado (1=local gana, 0=empate, -1=visitante gana)
-df["result"] = df.apply(
-    lambda row: 1 if row["goals_home"] > row["goals_away"]
-    else -1 if row["goals_home"] < row["goals_away"]
-    else 0,
-    axis=1,
-)
+    df = pd.read_json(latest_file, lines=True)
+    log(f"📊 Partidos cargados: {len(df)}")
 
-# Ambos anotan (1=sí, 0=no)
-df["btts"] = df.apply(
-    lambda row: 1 if (row["goals_home"] > 0 and row["goals_away"] > 0) else 0,
-    axis=1,
-)
+    df = generate_targets(df)
 
-# Over 2.5 goles (1=sí, 0=no)
-df["over_2.5"] = df["total_goals"].apply(lambda x: 1 if x > 2.5 else 0)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_file = os.path.join(OUTPUT_DIR, f"features_with_targets_{timestamp}.csv")
+    df.to_csv(output_file, index=False)
+    log(f"✅ Targets generados correctamente y guardados en: {output_file}")
 
-# ==========================
-# 💾 SAVE OUTPUT
-# ==========================
-df.to_csv(OUTPUT_FILE, index=False)
-print("\n✅ Targets added successfully!")
-print(f"💾 Saved new dataset with targets → {OUTPUT_FILE}")
-
-# ==========================
-# 🔍 SAMPLE OUTPUT
-# ==========================
-print("\n📊 Preview:")
-print(df[["home_team", "away_team", "goals_home", "goals_away", "result", "btts", "over_2.5"]].head())
+    print(df.head())
