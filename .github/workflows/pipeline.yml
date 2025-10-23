@@ -1,0 +1,43 @@
+name: ⚽ Weekly Football Prediction Pipeline
+
+on:
+  schedule:
+    - cron: "0 6 * * MON"   # Lunes 06:00 UTC
+  workflow_dispatch:         # Permite correrlo manualmente
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: ⚙️ Run ML pipeline
+        run: |
+          echo "🚀 Starting automated Football ML pipeline..."
+          python3 scripts/01_data_ingestion.py
+          python3 scripts/02_feature_engineering.py
+          python3 scripts/05_add_targets.py
+          python3 scripts/03_modeling.py
+          python3 scripts/07_cross_validation.py
+          python3 scripts/06_evaluate_models.py
+          echo "✅ Pipeline completed successfully!"
+
+      - name: 💾 Commit updated logs and models
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add logs/ models/
+          git commit -m "🤖 Weekly pipeline auto-run $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          git push || echo "No changes to push"
