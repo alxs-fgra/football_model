@@ -3,7 +3,7 @@
 """
 03_modeling.py — Entrenamiento y evaluación de modelo 1X2 (fútbol)
 Autor: Alexis Figueroa
-Versión: Final Pro (Oct 2025)
+Versión: Final Pro++ (Oct 2025)
 """
 
 # ---------------------------------------------------------------------
@@ -21,15 +21,15 @@ import logging
 import seaborn as sns
 import matplotlib.pyplot as plt
 from datetime import datetime
-
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     accuracy_score, classification_report, log_loss,
-    roc_auc_score, confusion_matrix
+    roc_auc_score, confusion_matrix, roc_curve, auc
 )
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler, LabelEncoder, label_binarize
 from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 
 # ---------------------------------------------------------------------
@@ -75,7 +75,7 @@ log.info(f"Datos cargados correctamente. Total de filas: {len(df):,}")
 required_cols = [
     "goals_home", "goals_away", "season", "date",
     "avg_goals_home", "avg_goals_away",
-    "home_form", "away_form", "h2h_avg_goals", "is_home"
+    "home_form", "away_form", "h2h_avg_goals", "is_home", "home_team"
 ]
 missing_cols = [c for c in required_cols if c not in df.columns]
 if missing_cols:
@@ -85,9 +85,20 @@ if missing_cols:
 # FEATURE ENGINEERING
 # ---------------------------------------------------------------------
 log.info("Aplicando feature engineering...")
+
 df["date"] = pd.to_datetime(df["date"])
 df["month"] = df["date"].dt.month
 df["goal_diff"] = df["avg_goals_home"] - df["avg_goals_away"]
+df["total_goals"] = df["goals_home"] + df["goals_away"]
+
+# Nueva feature: promedio móvil de goles (últimos 5 partidos)
+df = df.sort_values(["home_team", "date"])
+df["rolling_avg_goals"] = (
+    df.groupby("home_team")["total_goals"]
+    .rolling(5, min_periods=1)
+    .mean()
+    .reset_index(level=0, drop=True)
+)
 
 # ---------------------------------------------------------------------
 # TARGET CREATION (1X2)
@@ -106,7 +117,7 @@ features = [
     "avg_goals_home", "avg_goals_away",
     "home_form", "away_form",
     "h2h_avg_goals", "is_home",
-    "month", "goal_diff"
+    "month", "goal_diff", "rolling_avg_goals"
 ]
 log.info(f"Usando features: {features}")
 
@@ -116,31 +127,27 @@ y = df["result"]
 # ---------------------------------------------------------------------
 # TRAIN/VAL SPLIT
 # ---------------------------------------------------------------------
-log.info("Dividiendo datos en train (2015–2022) y val (2023)...")
 train_mask = df["season"] <= 2022
 val_mask = df["season"] == 2023
-X_train, y_train = X[train_mask], y[train_mask]
-X_val, y_val = X[val_mask], y[val_mask]
+X_train, y_train = X[train_mask].values, y[train_mask].values
+X_val, y_val = X[val_mask].values, y[val_mask].values
 
 # ---------------------------------------------------------------------
-# IMPUTATION AND SCALING (BEFORE SMOTE)
+# IMPUTATION + SMOTE
 # ---------------------------------------------------------------------
-log.info("Imputando valores faltantes antes de aplicar SMOTE...")
+log.info("Imputando valores faltantes...")
 imputer = SimpleImputer(strategy="mean")
 X_train = imputer.fit_transform(X_train)
 X_val = imputer.transform(X_val)
-missing_count = np.isnan(X_train).sum()
-log.info(f"🔍 Valores NaN imputados antes de SMOTE: {missing_count}")
 
-# ---------------------------------------------------------------------
-# CLASS BALANCING (SMOTE)
-# ---------------------------------------------------------------------
-log.info("Aplicando SMOTE para balanceo de clases...")
-smote = SMOTE(random_state=42)
+# SMOTE ajustado para reforzar “Draw” (empates)
+draw_count = np.sum(y_train == 0)
+safe_target = min(800, draw_count)
+smote = SMOTE(random_state=42, sampling_strategy={0: safe_target})
 X_train, y_train = smote.fit_resample(X_train, y_train)
 
 # ---------------------------------------------------------------------
-# SCALING POST-SMOTE
+# SCALING
 # ---------------------------------------------------------------------
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
@@ -149,8 +156,8 @@ X_val = scaler.transform(X_val)
 # ---------------------------------------------------------------------
 # HYPERPARAMETER OPTIMIZATION
 # ---------------------------------------------------------------------
+param_grid = {"C": [0.001, 0.002, 0.005, 0.01, 0.02], "solver": ["lbfgs", "saga"]}
 log.info("Optimizando hiperparámetros con GridSearchCV...")
-param_grid = {"C": [0.01, 0.1, 1, 10, 100], "penalty": ["l2"]}
 grid = GridSearchCV(
     LogisticRegression(max_iter=2000, multi_class="multinomial", class_weight="balanced"),
     param_grid,
@@ -164,10 +171,8 @@ log.info(f"✅ Mejor combinación de hiperparámetros: {grid.best_params_}")
 # ---------------------------------------------------------------------
 # VALIDATION
 # ---------------------------------------------------------------------
-log.info("Evaluando modelo en temporada 2023...")
 y_pred = best_model.predict(X_val)
 y_pred_proba = best_model.predict_proba(X_val)
-
 accuracy = accuracy_score(y_val, y_pred)
 logloss = log_loss(y_val, y_pred_proba)
 encoder = LabelEncoder()
@@ -175,8 +180,8 @@ y_val_encoded = encoder.fit_transform(y_val)
 roc_auc = roc_auc_score(y_val_encoded, y_pred_proba, multi_class="ovr", average="weighted")
 
 log.info(f"🎯 Accuracy en 2023 ({league.title()}): {accuracy:.2f}")
-log.info(f"📊 Log-loss en 2023: {logloss:.3f}")
-log.info(f"ROC-AUC (weighted): {roc_auc:.3f}")
+log.info(f"📊 Log-loss: {logloss:.3f}")
+log.info(f"ROC-AUC: {roc_auc:.3f}")
 
 print("\n📊 Reporte de Clasificación:")
 print(classification_report(y_val, y_pred, zero_division=0))
@@ -188,53 +193,66 @@ cv_scores = cross_val_score(best_model, X_train, y_train, cv=5)
 log.info(f"Cross-validation mean: {cv_scores.mean():.3f} ± {cv_scores.std()*2:.3f}")
 
 # ---------------------------------------------------------------------
+# CURVAS ROC MULTICLASE
+# ---------------------------------------------------------------------
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+log.info("Generando curvas ROC multiclase...")
+
+classes = np.unique(y_val)
+y_val_bin = label_binarize(y_val, classes=classes)
+fpr, tpr, roc_auc_class = {}, {}, {}
+
+plt.figure(figsize=(7, 5))
+for i, cls in enumerate(classes):
+    fpr[cls], tpr[cls], _ = roc_curve(y_val_bin[:, i], y_pred_proba[:, i])
+    roc_auc_class[cls] = auc(fpr[cls], tpr[cls])
+    plt.plot(fpr[cls], tpr[cls], lw=2, label=f"Clase {cls} (AUC={roc_auc_class[cls]:.2f})")
+
+plt.plot([0, 1], [0, 1], "k--", lw=1)
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title(f"Curvas ROC multiclase ({league.title()} 2023)")
+plt.legend(loc="lower right")
+roc_path = f"models/roc_curve_{league}_{timestamp}.png"
+plt.tight_layout()
+plt.savefig(roc_path)
+plt.close()
+log.info(f"📈 Curvas ROC guardadas en: {roc_path}")
+
+# ---------------------------------------------------------------------
 # CONFUSION MATRIX
 # ---------------------------------------------------------------------
-log.info("Generando matriz de confusión...")
 cm = confusion_matrix(y_val, y_pred, labels=[-1, 0, 1])
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
             xticklabels=["Away Win", "Draw", "Home Win"],
             yticklabels=["Away Win", "Draw", "Home Win"])
 plt.title(f"Matriz de Confusión ({league.title()} 2023)")
-plt.xlabel("Predicho")
-plt.ylabel("Real")
 plt.tight_layout()
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 cm_path = f"models/confusion_matrix_{league}_{timestamp}.png"
 plt.savefig(cm_path)
 plt.close()
-log.info(f"📊 Matriz de confusión guardada en: {cm_path}")
 
 # ---------------------------------------------------------------------
 # FEATURE IMPORTANCE
 # ---------------------------------------------------------------------
-log.info("Guardando importancia de features...")
 importance = pd.DataFrame({
     "feature": features,
     "importance": best_model.coef_[0]
 }).sort_values(by="importance", ascending=False)
 importance_path = f"models/feature_importance_{league}_{timestamp}.csv"
 importance.to_csv(importance_path, index=False)
-log.info(f"📈 Importancia de features guardada en: {importance_path}")
 
 # ---------------------------------------------------------------------
-# SAVE MODEL AND PREPROCESSORS
+# SAVE PIPELINE + METRICS
 # ---------------------------------------------------------------------
-OUTPUT_PATH = f"models/{league}_model_{timestamp}.pkl"
-PREPROC_PATH = f"models/{league}_scaler_imputer_{timestamp}.pkl"
+pipeline = Pipeline([
+    ("imputer", imputer),
+    ("scaler", scaler),
+    ("model", best_model)
+])
+pipeline_path = f"models/{league}_pipeline_{timestamp}.pkl"
+joblib.dump(pipeline, pipeline_path)
 
-joblib.dump({
-    "model": best_model,
-    "scaler": scaler,
-    "imputer": imputer
-}, PREPROC_PATH)
-joblib.dump(best_model, OUTPUT_PATH)
-log.info(f"✅ Modelo guardado en: {OUTPUT_PATH}")
-log.info(f"🧩 Preprocesadores guardados en: {PREPROC_PATH}")
-
-# ---------------------------------------------------------------------
-# SAVE METRICS
-# ---------------------------------------------------------------------
 metrics_path = f"models/metrics_{league}_{timestamp}.csv"
 pd.DataFrame([{
     "league": league,
@@ -245,20 +263,32 @@ pd.DataFrame([{
     "cv_mean": cv_scores.mean(),
     "cv_std": cv_scores.std(),
     "best_C": grid.best_params_["C"],
-    "penalty": grid.best_params_["penalty"]
+    "solver": grid.best_params_["solver"]
 }]).to_csv(metrics_path, index=False)
-log.info(f"📊 Métricas guardadas en: {metrics_path}")
+
+# Markdown resumen
+summary_md = f"models/summary_{league}_{timestamp}.md"
+with open(summary_md, "w") as f:
+    f.write(f"# Modelo {league.title()} — {timestamp}\n")
+    f.write(f"- Accuracy: {accuracy:.2%}\n")
+    f.write(f"- Log-loss: {logloss:.3f}\n")
+    f.write(f"- ROC-AUC: {roc_auc:.3f}\n")
+    f.write(f"- CV: {cv_scores.mean():.2%} ± {cv_scores.std()*2:.2%}\n")
+    f.write(f"- Mejor C: {grid.best_params_['C']} | Solver: {grid.best_params_['solver']}\n")
+
+log.info(f"✅ Pipeline guardado en: {pipeline_path}")
+log.info(f"📈 Curvas ROC: {roc_path}")
+log.info(f"📊 Matriz de confusión: {cm_path}")
+log.info(f"📘 Resumen: {summary_md}")
 
 # ---------------------------------------------------------------------
 # FINAL SUMMARY
 # ---------------------------------------------------------------------
 print("\n✅ MODELADO COMPLETADO EXITOSAMENTE")
-print(f"Accuracy en 2023: {accuracy:.2%}")
-print(f"Log-loss en 2023: {logloss:.3f}")
-print(f"ROC-AUC (weighted): {roc_auc:.3f}")
-print(f"Cross-validation: {cv_scores.mean():.2%} (± {cv_scores.std()*2:.2%})")
-print(f"Modelo guardado en: {OUTPUT_PATH}")
-print(f"Preprocesadores guardados en: {PREPROC_PATH}")
+print(f"Accuracy: {accuracy:.2%}")
+print(f"ROC-AUC: {roc_auc:.3f}")
+print(f"Modelo guardado en: {pipeline_path}")
 print(f"Matriz de confusión: {cm_path}")
+print(f"Curvas ROC: {roc_path}")
 print(f"Métricas: {metrics_path}")
 print(f"Importancia de features: {importance_path}")

@@ -4,3 +4,10 @@ config/credentials.json
 .DS_Store
 config/football-prediction-2025-c554bb4a599d.json
 logs/
+models/
+logs/
+data/
+*.pkl
+*.csv
+*.png
+*.md
