@@ -6,20 +6,26 @@ from datetime import datetime
 def log(msg):
     print(f"🧠 {msg}")
 
-# ==================================================
-# 📍 DEFINIR RUTA ABSOLUTA CON BASE EN ESTE ARCHIVO
-# ==================================================
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PROCESSED_DIR = os.path.join(BASE_DIR, "data", "processed")
-REPORTS_DIR = os.path.join(BASE_DIR, "data", "reports")
+# ======================================================
+# 📍 LOCALIZAR CARPETA DE "data/processed" AUTOMÁTICAMENTE
+# ======================================================
+def find_processed_dir():
+    for root, dirs, files in os.walk("."):
+        if "data" in dirs and os.path.isdir(os.path.join(root, "data/processed")):
+            return os.path.abspath(os.path.join(root, "data/processed"))
+    # fallback absoluto si nada se encontró
+    return os.path.abspath(os.path.join(os.getcwd(), "data/processed"))
 
+PROCESSED_DIR = find_processed_dir()
+REPORTS_DIR = os.path.join(os.path.dirname(PROCESSED_DIR), "reports")
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
+log(f"📂 Looking for datasets in: {PROCESSED_DIR}")
+
 def get_latest_dataset():
-    log(f"🔍 Looking for CSVs inside: {PROCESSED_DIR}")
     csv_files = [f for f in os.listdir(PROCESSED_DIR) if f.endswith(".csv")]
     if not csv_files:
-        log(f"⚠️ Contents of processed dir: {os.listdir(PROCESSED_DIR)}")
+        log(f"⚠️ No CSVs found. Directory contents: {os.listdir(PROCESSED_DIR)}")
         raise FileNotFoundError(f"❌ No dataset CSV found in {PROCESSED_DIR}")
     latest = max(csv_files, key=lambda f: os.path.getmtime(os.path.join(PROCESSED_DIR, f)))
     path = os.path.join(PROCESSED_DIR, latest)
