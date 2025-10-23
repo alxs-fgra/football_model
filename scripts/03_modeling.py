@@ -1,175 +1,119 @@
-#!/usr/bin/env python3
-# =====================================
-# ⚽ MODEL TRAINING PIPELINE (Safe Feature Selection + Evaluation)
-# =====================================
 import os
-import joblib
 import pandas as pd
-import numpy as np
+import joblib
 from datetime import datetime
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    confusion_matrix,
-)
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.impute import SimpleImputer
+import numpy as np
 
-# =====================================
-# 📁 CONFIG
-# =====================================
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, "data", "processed")
-MODEL_DIR = os.path.join(BASE_DIR, "models")
-LOG_DIR = os.path.join(BASE_DIR, "logs")
+# =====================================================
+# 🔧 CONFIGURACIÓN GENERAL
+# =====================================================
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DATA_DIR = os.path.join(REPO_ROOT, "data", "processed")
+MODEL_DIR = os.path.join(REPO_ROOT, "models")
+LOGS_DIR = os.path.join(REPO_ROOT, "logs")
+
 os.makedirs(MODEL_DIR, exist_ok=True)
-os.makedirs(LOG_DIR, exist_ok=True)
+os.makedirs(LOGS_DIR, exist_ok=True)
 
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-LOG_FILE = os.path.join(LOG_DIR, "model_training_log.csv")
+LOG_FILE = os.path.join(LOGS_DIR, "model_training_log.csv")
 
-# =====================================
-# 📂 LOAD DATASET (latest features file)
-# =====================================
-files = [f for f in os.listdir(DATA_DIR) if f.startswith("features_la_liga")]
-if not files:
-    raise SystemExit("❌ No dataset found in data/processed/")
-files = sorted(files, key=lambda x: os.path.getmtime(os.path.join(DATA_DIR, x)), reverse=True)
-DATA_PATH = os.path.join(DATA_DIR, files[0])
+# =====================================================
+# 📦 FUNCIONES AUXILIARES
+# =====================================================
+def log(msg):
+    print(msg)
 
-print(f"📂 Using dataset: {DATA_PATH}")
-df = pd.read_csv(DATA_PATH)
+def get_latest_dataset():
+    csv_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".csv")]
+    if not csv_files:
+        raise FileNotFoundError(f"❌ No CSV found in {DATA_DIR}\nAvailable: {os.listdir(DATA_DIR)}")
+    latest = max(csv_files, key=lambda f: os.path.getmtime(os.path.join(DATA_DIR, f)))
+    latest_path = os.path.join(DATA_DIR, latest)
+    log(f"📂 Using dataset: {latest_path}")
+    return latest_path
 
-# =====================================
-# 🧠 AUTO-GENERATE TARGETS IF MISSING
-# =====================================
-required_targets = ["result", "btts", "over_2.5"]
-missing_targets = [col for col in required_targets if col not in df.columns]
+def save_metrics(model_name, accuracy, precision, recall, f1):
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    row = f"{ts},{model_name},{accuracy:.3f},{precision:.3f},{recall:.3f},{f1:.3f},{os.path.basename(DATA_PATH)}\n"
+    header = "timestamp,model,accuracy,precision,recall,f1,dataset\n"
+    write_header = not os.path.exists(LOG_FILE)
+    with open(LOG_FILE, "a") as f:
+        if write_header:
+            f.write(header)
+        f.write(row)
 
-if missing_targets:
-    print(f"⚠️ Missing targets: {missing_targets} → Generating automatically...")
-    
-    if {"goals_home", "goals_away", "total_goals"}.issubset(df.columns):
-        df["result"] = df.apply(
-            lambda row: 1 if row["goals_home"] > row["goals_away"]
-            else -1 if row["goals_home"] < row["goals_away"]
-            else 0,
-            axis=1,
-        )
-        df["btts"] = df.apply(
-            lambda row: 1 if (row["goals_home"] > 0 and row["goals_away"] > 0) else 0,
-            axis=1,
-        )
-        df["over_2.5"] = df["total_goals"].apply(lambda x: 1 if x > 2.5 else 0)
+# =====================================================
+# ⚙️ ENTRENAMIENTO
+# =====================================================
+def train_and_evaluate(df, target_col, model_name):
+    log(f"\n🏟️ Training model for: {model_name.upper()}")
 
-        # 💾 Save auto-generated dataset
-        auto_path = os.path.join(DATA_DIR, f"features_la_liga_with_targets_auto_{timestamp}.csv")
-        df.to_csv(auto_path, index=False)
-        print(f"✅ Targets generated and saved to → {auto_path}")
-    else:
-        raise SystemExit("❌ Cannot generate targets: missing goal columns (goals_home / goals_away / total_goals).")
-else:
-    print("✅ All target columns found in dataset.")
-
-# =====================================
-# 🧩 DEFINE FEATURES & TARGETS
-# =====================================
-# Remove columns that would leak real outcomes
-leakage_cols = ["result", "btts", "over_2.5", "goals_home", "goals_away", "total_goals"]
-numeric_df = df.select_dtypes(include=[np.number])
-features = [col for col in numeric_df.columns if col not in leakage_cols]
-
-if not features:
-    raise SystemExit("❌ No numeric features found to train models!")
-
-print(f"✅ Selected {len(features)} valid features (no leakage): {features}")
-
-target_map = {
-    "1x2": "result",
-    "btts": "btts",
-    "over_2.5": "over_2.5",
-}
-
-# =====================================
-# 📊 METRICS FUNCTION
-# =====================================
-def evaluate_model(model, X_test, y_test, model_name):
-    y_pred = model.predict(X_test)
-    acc = accuracy_score(y_test, y_pred)
-    prec = precision_score(y_test, y_pred, average="macro", zero_division=0)
-    rec = recall_score(y_test, y_pred, average="macro", zero_division=0)
-    f1 = f1_score(y_test, y_pred, average="macro", zero_division=0)
-    cm = confusion_matrix(y_test, y_pred)
-
-    print(f"\n📊 [{model_name}] Metrics:")
-    print(f"   - Accuracy : {acc:.3f}")
-    print(f"   - Precision: {prec:.3f}")
-    print(f"   - Recall   : {rec:.3f}")
-    print(f"   - F1 Score : {f1:.3f}")
-    print("   - Confusion Matrix:")
-    print(cm)
-
-    return acc, prec, rec, f1
-
-# =====================================
-# ⚙️ TRAINING LOOP
-# =====================================
-logs = []
-
-for key, target_col in target_map.items():
-    print(f"\n🏟️ Training model for: {key.upper()}")
+    # Features (evitamos fuga de datos)
+    drop_cols = ["date", "home_team", "away_team", "winner", "league"]
+    features = [c for c in df.columns if c not in drop_cols + ["result", "btts", "over_2.5"]]
+    log(f"✅ Selected {len(features)} valid features (no leakage): {features}")
 
     X = df[features]
     y = df[target_col]
 
+    # Imputación + Escalado
     imputer = SimpleImputer(strategy="median")
     X = imputer.fit_transform(X)
-
     scaler = StandardScaler()
     X = scaler.fit_transform(X)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
-
-    model = LogisticRegression(max_iter=500) if key == "1x2" else RandomForestClassifier(
-        n_estimators=150, random_state=42
-    )
-
+    # Split + Entrenamiento
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    model = RandomForestClassifier(n_estimators=150, random_state=42)
     model.fit(X_train, y_train)
-    acc, prec, rec, f1 = evaluate_model(model, X_test, y_test, key)
 
-    # Save model
-    model_filename = f"{key}_model_{timestamp}.pkl"
-    model_path = os.path.join(MODEL_DIR, model_filename)
+    # Predicción
+    y_pred = model.predict(X_test)
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, average="weighted", zero_division=0)
+    rec = recall_score(y_test, y_pred, average="weighted", zero_division=0)
+    f1 = f1_score(y_test, y_pred, average="weighted", zero_division=0)
+
+    # Métricas
+    log(f"\n📊 [{model_name}] Metrics:")
+    log(f"   - Accuracy : {acc:.3f}")
+    log(f"   - Precision: {prec:.3f}")
+    log(f"   - Recall   : {rec:.3f}")
+    log(f"   - F1 Score : {f1:.3f}")
+    cm = confusion_matrix(y_test, y_pred)
+    log(f"   - Confusion Matrix:\n{cm}")
+
+    # Guardar modelo y métricas
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    model_path = os.path.join(MODEL_DIR, f"{model_name}_model_{ts}.pkl")
     joblib.dump(model, model_path)
+    log(f"💾 Model saved: {model_path}")
+    save_metrics(model_name, acc, prec, rec, f1)
 
-    print(f"💾 Model saved: {model_path}")
+# =====================================================
+# 🚀 MAIN
+# =====================================================
+if __name__ == "__main__":
+    DATA_PATH = get_latest_dataset()
+    df = pd.read_csv(DATA_PATH)
 
-    logs.append({
-        "timestamp": timestamp,
-        "model": key,
-        "accuracy": acc,
-        "precision": prec,
-        "recall": rec,
-        "f1": f1,
-        "dataset": os.path.basename(DATA_PATH),
-        "features": len(features)
-    })
+    expected_targets = ["result", "btts", "over_2.5"]
+    missing = [col for col in expected_targets if col not in df.columns]
+    if missing:
+        log(f"❌ Missing target columns: {missing}")
+        exit(1)
+    else:
+        log("✅ All target columns found in dataset.")
 
-# =====================================
-# 🧾 SAVE LOG
-# =====================================
-df_logs = pd.DataFrame(logs)
-if not os.path.exists(LOG_FILE):
-    df_logs.to_csv(LOG_FILE, index=False)
-else:
-    df_logs.to_csv(LOG_FILE, mode="a", header=False, index=False)
+    # Entrenamos modelos para los tres mercados
+    train_and_evaluate(df, "result", "1x2")
+    train_and_evaluate(df, "btts", "btts")
+    train_and_evaluate(df, "over_2.5", "over_2.5")
 
-print("\n✅ Training completed successfully!")
-print(f"📊 Metrics logged in: {LOG_FILE}")
+    log("\n✅ Training completed successfully!")
+    log(f"📊 Metrics logged in: {LOG_FILE}")

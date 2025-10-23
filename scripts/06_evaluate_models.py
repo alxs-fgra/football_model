@@ -3,61 +3,98 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-def log(msg):
-    print(f"🧠 {msg}")
-
-# ======================================================
-# 📍 DETECTAR RUTA ABSOLUTA DE LA RAÍZ DEL REPO
-# ======================================================
+# =====================================================
+# 📂 CONFIGURACIÓN GENERAL
+# =====================================================
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-PROCESSED_DIR = os.path.join(REPO_ROOT, "data", "processed")
-REPORTS_DIR = os.path.join(REPO_ROOT, "data", "reports")
+LOGS_DIR = os.path.join(REPO_ROOT, "logs")
+REPORTS_DIR = os.path.join(REPO_ROOT, "reports")
+
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
-log(f"📂 Working from: {os.getcwd()}")
-log(f"📂 Using processed dir: {PROCESSED_DIR}")
+LOG_FILE = os.path.join(LOGS_DIR, "model_training_log.csv")
 
-def get_latest_dataset():
-    csv_files = [f for f in os.listdir(PROCESSED_DIR) if f.endswith(".csv")]
-    if not csv_files:
-        log(f"⚠️ Directory contents: {os.listdir(PROCESSED_DIR)}")
-        raise FileNotFoundError(f"❌ No dataset CSV found in {PROCESSED_DIR}")
-    latest = max(csv_files, key=lambda f: os.path.getmtime(os.path.join(PROCESSED_DIR, f)))
-    path = os.path.join(PROCESSED_DIR, latest)
-    log(f"✅ Latest dataset found: {path}")
-    return path
+# =====================================================
+# 🧠 FUNCIONES AUXILIARES
+# =====================================================
+def log(msg):
+    print(msg)
 
-def evaluate_dataset(df):
-    log(f"📊 Evaluating dataset with {len(df)} rows...")
-    stats = {
-        "total_matches": len(df),
-        "home_wins": (df["result"] == 1).sum(),
-        "draws": (df["result"] == 0).sum(),
-        "away_wins": (df["result"] == -1).sum(),
-        "btts_yes": df["btts"].sum(),
-        "over_2.5_yes": df["over_2.5"].sum()
-    }
-    df_summary = pd.DataFrame([stats])
-    log(df_summary.to_string(index=False))
+def load_logs():
+    if not os.path.exists(LOG_FILE):
+        raise FileNotFoundError(f"❌ No se encontró archivo de logs: {LOG_FILE}")
+    df = pd.read_csv(LOG_FILE)
+    log(f"✅ Logs cargados correctamente.\n📊 Total de registros: {len(df)}")
+    return df
+
+def generate_summary(df):
+    grouped = df.groupby("model")[["accuracy", "precision", "recall", "f1"]].mean().round(3)
+    log("\n📊 Métricas promedio por tipo de modelo:")
+    print(grouped)
+
+    best_models = df.loc[df.groupby("model")["f1"].idxmax()]
+    log("\n🏆 Mejores modelos por tipo:")
+    print(best_models[["model", "timestamp", "accuracy", "f1", "dataset"]])
+    return grouped, best_models
+
+def plot_performance(df):
+    plt.figure(figsize=(8, 5))
+    grouped = df.groupby("model")[["accuracy", "f1"]].mean().reset_index()
+    plt.bar(grouped["model"], grouped["accuracy"], label="Accuracy", alpha=0.6)
+    plt.bar(grouped["model"], grouped["f1"], label="F1 Score", alpha=0.6)
+    plt.title("📈 Average Model Performance")
+    plt.xlabel("Model Type")
+    plt.ylabel("Score")
+    plt.legend()
+    plt.grid(True, linestyle="--", alpha=0.5)
 
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    summary_path = os.path.join(REPORTS_DIR, f"dataset_summary_{ts}.csv")
-    chart_path = os.path.join(REPORTS_DIR, f"result_distribution_{ts}.png")
+    chart_path = os.path.join(REPORTS_DIR, f"model_performance_{ts}.png")
+    plt.savefig(chart_path, bbox_inches="tight")
+    plt.close()
+    log(f"\n🖼️ Gráfica guardada: {chart_path}")
+    return chart_path
 
-    df_summary.to_csv(summary_path, index=False)
-    log(f"✅ Summary saved: {summary_path}")
+def generate_html_report(summary_df, best_df, chart_path):
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    html_path = os.path.join(REPORTS_DIR, f"model_evaluation_report_{ts}.html")
 
-    plt.figure(figsize=(6, 4))
-    df["result"].value_counts().sort_index().plot(kind="bar", color=["green", "gray", "red"])
-    plt.title("Distribution of Results (1=Home, 0=Draw, -1=Away)")
-    plt.xlabel("Result")
-    plt.ylabel("Frequency")
-    plt.tight_layout()
-    plt.savefig(chart_path)
-    log(f"📊 Chart saved: {chart_path}")
+    html = f"""
+    <html>
+    <head><title>Football ML Model Evaluation</title></head>
+    <body style='font-family:Arial; margin:40px;'>
+    <h1>⚽ Football Prediction Model Evaluation Report</h1>
+    <h3>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</h3>
+    <hr>
+    <h2>📊 Average Metrics</h2>
+    {summary_df.to_html(border=0, justify='center')}
+    <hr>
+    <h2>🏆 Best Models per Category</h2>
+    {best_df.to_html(border=0, justify='center')}
+    <hr>
+    <h2>📈 Performance Chart</h2>
+    <img src="{os.path.basename(chart_path)}" width="600">
+    </body>
+    </html>
+    """
 
+    with open(html_path, "w") as f:
+        f.write(html)
+
+    log(f"📄 Reporte HTML generado: {html_path}")
+    return html_path
+
+# =====================================================
+# 🚀 MAIN
+# =====================================================
 if __name__ == "__main__":
-    dataset_path = get_latest_dataset()
-    df = pd.read_csv(dataset_path)
-    evaluate_dataset(df)
-    log("✅ Evaluation completed successfully.")
+    try:
+        df = load_logs()
+        summary, best = generate_summary(df)
+        chart = plot_performance(df)
+        report = generate_html_report(summary, best, chart)
+        log("\n✅ Evaluación completada con éxito.")
+        log("Abre el archivo HTML generado para visualizar resultados de forma interactiva.")
+    except Exception as e:
+        log(f"❌ Error durante la evaluación: {e}")
+        exit(1)

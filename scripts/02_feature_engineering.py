@@ -1,10 +1,11 @@
 import os
 import json
 import pandas as pd
+import glob
 from datetime import datetime
 
 # ==========================================
-#  ⚙️ CONFIGURACIÓN GENERAL
+#  CONFIGURACIÓN GENERAL
 # ==========================================
 RAW_DIR = "data/raw"
 PROCESSED_DIR = "data/processed"
@@ -13,23 +14,17 @@ LOG_PATH = "logs/feature_engineering.log"
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 
-
 def log_message(message):
-    """Simple logger con timestamp."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"{timestamp} - INFO - {message}"
     print(line)
     with open(LOG_PATH, "a") as log:
         log.write(line + "\n")
 
-
 # ==========================================
-#  🧩 FUNCIÓN PRINCIPAL DE FEATURE ENGINEERING
+#  PROCESAMIENTO DE LIGA
 # ==========================================
 def process_league_data(league_id):
-    """
-    Procesa todos los años disponibles para una liga dada (usando los archivos descargados en 01_data_ingestion.py).
-    """
     log_message(f"Iniciando feature engineering para la liga {league_id}...")
     processed_files = []
 
@@ -40,12 +35,10 @@ def process_league_data(league_id):
                 with open(raw_path, "r") as f:
                     data = json.load(f)
             except json.JSONDecodeError:
-                log_message(f"⚠️ Error al leer {filename}, archivo JSON inválido.")
+                log_message(f"Error al leer {filename}, JSON inválido.")
                 continue
 
-            # ✅ FIX: manejar tanto lista como diccionario
             matches_raw = data if isinstance(data, list) else data.get("response", [])
-
             matches = []
             for match in matches_raw:
                 info = match.get("fixture", {})
@@ -69,65 +62,53 @@ def process_league_data(league_id):
                 })
 
             df = pd.DataFrame(matches)
-
-            # Feature engineering adicional
             df["total_goals"] = df["home_goals"] + df["away_goals"]
             df["goal_diff"] = (df["home_goals"] - df["away_goals"]).abs()
             df["is_draw"] = (df["home_goals"] == df["away_goals"]).astype(int)
 
-            # Guardar CSV procesado
-            processed_name = f"processed_{filename.replace('.json', '.jsonl')}"
+            processed_name = f"processed_fixtures_league_{league_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jsonl"
             processed_path = os.path.join(PROCESSED_DIR, processed_name)
             df.to_json(processed_path, orient="records", lines=True)
-
-            log_message(f"✅ Procesado: {processed_name} con {len(df)} partidos.")
+            log_message(f"✅ Procesado: {processed_name} → {len(df)} partidos")
             processed_files.append(processed_path)
 
-    log_message(f"🏁 Finalizado feature engineering para liga {league_id}. Total de archivos procesados: {len(processed_files)}")
+    log_message(f"🏁 Finalizado liga {league_id}: {len(processed_files)} archivos procesados")
     return processed_files
 
+# ==========================================
+#  GENERAR CSV FINAL CONSOLIDADO
+# ==========================================
+def generate_final_csv():
+    log_message("🧠 Generando CSV final consolidado...")
+    all_dfs = []
+    league_names = {140: "la_liga", 39: "premier_league", 78: "bundesliga"}
+
+    for league_id, name in league_names.items():
+        pattern = os.path.join(PROCESSED_DIR, f"processed_fixtures_league_{league_id}_*.jsonl")
+        files = sorted(glob.glob(pattern))
+        if not files:
+            continue
+        df_list = [pd.read_json(f, lines=True) for f in files]
+        df = pd.concat(df_list, ignore_index=True)
+        df["league"] = name
+        all_dfs.append(df)
+
+    if all_dfs:
+        final_df = pd.concat(all_dfs, ignore_index=True)
+        csv_path = os.path.join(PROCESSED_DIR, "features_all_leagues_2015_2024.csv")
+        final_df.to_csv(csv_path, index=False)
+        log_message(f"✅ CSV FINAL GENERADO: {csv_path} → {len(final_df)} partidos")
+    else:
+        log_message("⚠️ No se generó CSV final: no hay datos procesados.")
 
 # ==========================================
-#  ☁️ CARGA OPCIONAL A BIGQUERY (si existen credenciales)
-# ==========================================
-def upload_to_bigquery(processed_files):
-    """Carga los archivos procesados a BigQuery solo si existen credenciales GCP."""
-    GCP_CREDENTIALS = "config/football-prediction-2025-c55b44ba599d.json"
-
-    if not os.path.exists(GCP_CREDENTIALS):
-        log_message("⚠️ No se encontraron credenciales de BigQuery. Saltando carga remota...")
-        return
-
-    try:
-        from google.cloud import bigquery
-        client = bigquery.Client.from_service_account_json(GCP_CREDENTIALS)
-        log_message("✅ Conectado a BigQuery correctamente.")
-
-        dataset_id = "football_data"
-        table_id = "matches"
-
-        for file_path in processed_files:
-            df = pd.read_json(file_path, lines=True)
-            client.load_table_from_dataframe(df, f"{dataset_id}.{table_id}")
-            log_message(f"📤 Subido {os.path.basename(file_path)} a BigQuery.")
-
-    except Exception as e:
-        log_message(f"⚠️ Error al conectar con BigQuery: {e}")
-
-
-# ==========================================
-#  🚀 MAIN
+#  MAIN
 # ==========================================
 if __name__ == "__main__":
-    log_message("🧠 Iniciando feature engineering global...")
-
-    # Procesar ligas principales
-    leagues = [140, 78, 135]  # Ejemplo: La Liga, Bundesliga, Serie A
+    log_message("🚀 Iniciando feature engineering global...")
+    leagues = [140, 39, 78]
     all_processed = []
     for league in leagues:
         all_processed.extend(process_league_data(league))
-
-    # Intentar subir a BigQuery solo si aplica
-    upload_to_bigquery(all_processed)
-
+    generate_final_csv()
     log_message("✅ Feature engineering completado exitosamente.")
