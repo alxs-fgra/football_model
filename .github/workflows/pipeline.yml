@@ -30,7 +30,7 @@ jobs:
       - name: 🧩 Create credentials.json from secret
         run: |
           mkdir -p config
-          echo "{\"api_key\": \"${{ secrets.API_FOOTBALL_KEY }}\"}" > config/credentials.json
+          echo "{\"api_football_key\": \"${{ secrets.API_FOOTBALL_KEY }}\"}" > config/credentials.json
         shell: bash
 
       # 5️⃣ Ejecuta el pipeline completo
