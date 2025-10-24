@@ -22,7 +22,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🔑 Export API key to environment
+      - name: 🔑 Setup credentials
         run: |
           echo "FOOTBALL_API_KEY=${{ secrets.FOOTBALL_API_KEY }}" >> $GITHUB_ENV
           mkdir -p config
@@ -34,7 +34,7 @@ jobs:
           FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
         run: |
           echo "🚀 Starting automated Football ML pipeline..."
-          mkdir -p data/raw data/processed
+          mkdir -p data/raw data/processed logs
 
           echo "📥 Running data ingestion..."
           python3 scripts/01_data_ingestion_global.py || echo "⚠️ Data ingestion skipped or partially failed."
@@ -43,17 +43,15 @@ jobs:
           python3 scripts/02_feature_engineering.py || echo "⚠️ Feature engineering warning."
           python3 scripts/05_add_targets.py || echo "⚠️ Target addition warning."
 
-          # ✅ Ensure correct dataset is used
-          if [ ! -f "data/processed/features_with_targets_latest.csv" ]; then
-            echo "🔍 Searching for features_with_targets dataset..."
-            latest_file=$(ls -t data/processed/features_with_targets_*.csv 2>/dev/null | head -n 1)
-            if [ -z "$latest_file" ]; then
-              echo "❌ No features_with_targets dataset found. Skipping model training."
-              exit 1
-            fi
-            cp "$latest_file" data/processed/features_with_targets_latest.csv
-            echo "✅ Using $latest_file for modeling."
+          # ✅ Fix: Ensure we copy only the correct features_with_targets dataset
+          echo "🔍 Searching for features_with_targets dataset..."
+          latest_file=$(ls -t data/processed/features_with_targets_*.csv 2>/dev/null | head -n 1)
+          if [ -z "$latest_file" ]; then
+            echo "❌ No features_with_targets dataset found. Skipping model training."
+            exit 1
           fi
+          cp "$latest_file" data/processed/features_with_targets_latest.csv
+          echo "✅ Using $latest_file for modeling."
 
           echo "📊 Running model training..."
           python3 scripts/03_modeling.py || echo "⚠️ Modeling failed or no dataset found."
