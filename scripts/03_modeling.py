@@ -1,122 +1,88 @@
-#!/usr/bin/env python3
-# ==============================================================
-# Script: 03_modeling.py
-# Autor:  Alexis Figueroa
-# Descripción:
-#   Entrena modelos para los diferentes mercados (1X2, BTTS, Over/Under 2.5)
-#   usando el dataset más reciente con targets generados por add_targets.py
-# ==============================================================
-
 import os
-import glob
 import pandas as pd
-import numpy as np
 import logging
-from datetime import datetime
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score
-import joblib
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from catboost import CatBoostClassifier
 
-# ==============================================================
-# CONFIGURACIÓN
-# ==============================================================
-
-DATA_DIR = "data/processed"
-MODELS_DIR = "models"
-os.makedirs(MODELS_DIR, exist_ok=True)
+# ==========================================================
+# 🧠 Setup de logging
+# ==========================================================
 os.makedirs("logs", exist_ok=True)
-
-# Buscar automáticamente el dataset más reciente
-files = sorted(
-    glob.glob(os.path.join(DATA_DIR, "features_with_targets_*.csv")),
-    key=os.path.getmtime,
-    reverse=True
-)
-if not files:
-    raise FileNotFoundError("❌ No se encontró ningún dataset con targets en data/processed/")
-else:
-    DATA_PATH = files[0]
-    print(f"📂 Loading latest dataset: {DATA_PATH}")
-
-timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-
 logging.basicConfig(
-    filename=f"logs/model_training_{timestamp}.log",
+    filename="logs/model_training.log",
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
+    format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-logging.info("🚀 Starting model training pipeline...")
-
-# ==============================================================
-# CARGA DE DATOS
-# ==============================================================
+# ==========================================================
+# 📂 Carga del dataset más reciente
+# ==========================================================
+DATA_PATH = "data/processed/features_with_targets_latest.csv"
+if not os.path.exists(DATA_PATH):
+    logging.error(f"❌ Dataset not found at {DATA_PATH}")
+    raise FileNotFoundError(f"Dataset not found at {DATA_PATH}")
 
 df = pd.read_csv(DATA_PATH)
 df = df.select_dtypes(include=["number"])
 logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
 
-# Features y targets
+# ==========================================================
+# 🎯 Definición de variables
+# ==========================================================
 target_cols = ["result", "btts", "over_2.5"]
 feature_cols = [col for col in df.columns if col not in target_cols]
-
 X = df[feature_cols]
-y_results = df["result"]
-y_btts = df["btts"]
-y_over25 = df["over_2.5"]
 
-# ==============================================================
-# PREPROCESAMIENTO
-# ==============================================================
-
-imputer = SimpleImputer(strategy="mean")
-scaler = StandardScaler()
-
-X_imputed = imputer.fit_transform(X)
-X_scaled = scaler.fit_transform(X_imputed)
-
-# Guardar scaler e imputer
-joblib.dump(imputer, os.path.join(MODELS_DIR, f"scaler_imputer_{timestamp}.pkl"))
-logging.info("💾 Imputer saved.")
-joblib.dump(scaler, os.path.join(MODELS_DIR, f"scaler_{timestamp}.pkl"))
-logging.info("💾 Scaler saved.")
-
-# ==============================================================
-# ENTRENAMIENTO DE MODELOS
-# ==============================================================
-
-def train_and_save_model(X, y, label: str):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    model = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42)
+# ==========================================================
+# ⚙️ Función auxiliar de entrenamiento
+# ==========================================================
+def train_and_evaluate(model_name, model, X_train, X_test, y_train, y_test):
     model.fit(X_train, y_train)
-
     preds = model.predict(X_test)
     acc = accuracy_score(y_test, preds)
-    f1 = f1_score(y_test, preds, average="macro")
+    f1 = f1_score(y_test, preds, average="weighted")
+    logging.info(f"✅ {model_name.upper()} | ACC={acc:.3f} | F1={f1:.3f}")
+    return acc, f1
 
-    model_path = os.path.join(MODELS_DIR, f"{label}_randomforest_{timestamp}.pkl")
-    joblib.dump(model, model_path)
-
-    logging.info(f"✅ {label.upper()} model trained - ACC={acc:.3f} F1={f1:.3f}")
-    print(f"✅ {label.upper()} model trained - ACC={acc:.3f} F1={f1:.3f}")
-
-    return {"model": label, "acc": acc, "f1": f1, "path": model_path}
-
-
+# ==========================================================
+# 🚀 Entrenamiento de modelos
+# ==========================================================
 results = []
-results.append(train_and_save_model(X_scaled, y_results, "result"))
-results.append(train_and_save_model(X_scaled, y_btts, "btts"))
-results.append(train_and_save_model(X_scaled, y_over25, "over_2.5"))
 
-# ==============================================================
-# GUARDAR RESULTADOS
-# ==============================================================
+for target in target_cols:
+    y = df[target]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+    # Selección del modelo base según el target
+    if target == "result":
+        model = XGBClassifier(n_estimators=150, learning_rate=0.1, max_depth=6, random_state=42)
+    elif target == "btts":
+        model = CatBoostClassifier(iterations=200, learning_rate=0.05, depth=6, verbose=False, random_seed=42)
+    else:
+        model = RandomForestClassifier(n_estimators=200, max_depth=8, random_state=42)
+
+    acc, f1 = train_and_evaluate(target, model, X_train, X_test, y_train, y_test)
+    results.append({"target": target, "accuracy": acc, "f1_score": f1})
+
+# ==========================================================
+# 💾 Guardado de resultados
+# ==========================================================
+os.makedirs("reports", exist_ok=True)
+results_df = pd.DataFrame(results)
+
+# 1️⃣ Guardar resumen principal
+timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
 summary_path = f"reports/model_performance_summary_{timestamp}.csv"
-pd.DataFrame(results).to_csv(summary_path, index=False)
-logging.info(f"📊 Model training summary saved → {summary_path}")
+results_df.to_csv(summary_path, index=False)
+logging.info(f"🏁 Model training completed successfully → {summary_path}")
 
-print(f"🏁 Model training completed successfully! Summary → {summary_path}")
+# 2️⃣ Guardar log adicional para evaluación
+log_path = "logs/model_training_log.csv"
+results_df.to_csv(log_path, index=False)
+logging.info(f"🧾 Training log saved at {log_path}")
+
+print(f"✅ Model training completed. Summary saved to {summary_path}")
+print(f"🧾 Training log saved to {log_path}")
