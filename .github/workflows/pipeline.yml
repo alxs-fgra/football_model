@@ -22,23 +22,26 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🔑 Setup credentials
+      - name: 🔑 Export API key to environment
         run: |
+          echo "FOOTBALL_API_KEY=${{ secrets.FOOTBALL_API_KEY }}" >> $GITHUB_ENV
           mkdir -p config
-          printf '{"api_football_key": "%s"}' "${{ secrets.FOOTBALL_API_KEY }}" > config/credentials.json
-          echo "✅ credentials.json created successfully"
+          echo "{\"api_football_key\": \"${{ secrets.FOOTBALL_API_KEY }}\"}" > config/credentials.json
+          echo "✅ API key exported and credentials.json created"
 
       - name: 🚀 Run full ML pipeline
+        env:
+          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
         run: |
           echo "🚀 Starting automated Football ML pipeline..."
           mkdir -p data/raw data/processed
+
           python3 scripts/01_data_ingestion_global.py || echo "⚠️ Data ingestion skipped or partially failed."
 
           echo "⚙️ Running feature engineering..."
           python3 scripts/02_feature_engineering.py || echo "⚠️ Feature engineering warning."
           python3 scripts/05_add_targets.py || echo "⚠️ Target addition warning."
 
-          # 🔄 Fallback: si no existe el dataset procesado, intenta reconstruir
           if [ ! -f "data/processed/features_with_targets_latest.csv" ]; then
             echo "⚙️ No processed dataset found, creating fallback dataset..."
             find data/processed -name '*.csv' -exec cp {} data/processed/features_with_targets_latest.csv \; || true
