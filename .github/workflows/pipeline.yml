@@ -3,7 +3,7 @@ name: ⚙️ Automated Football Model Pipeline
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * 1"  # Runs every Monday at 03:00 UTC
+    - cron: "0 3 * * 1"
 
 jobs:
   run-pipeline:
@@ -26,42 +26,37 @@ jobs:
         run: |
           mkdir -p config
           echo "{\"api_football_key\": \"\${{ secrets.FOOTBALL_API_KEY }}\"}" > config/credentials.json
-
-      - name: 🧹 Clean old artifacts
-        run: |
-          rm -rf data/raw/* data/processed/* logs/* reports/* || true
-          mkdir -p data/raw data/processed logs reports
+          echo "✅ API key exported and credentials.json created"
 
       - name: 🚀 Run full ML pipeline
         run: |
           echo "🚀 Starting automated Football ML pipeline..."
-          mkdir -p data/raw data/processed logs
+          mkdir -p data/raw data/processed logs reports
 
           echo "📥 Running data ingestion..."
-          python3 scripts/01_data_ingestion_global.py || echo "⚠️ Data ingestion skipped or partially failed."
+          python3 scripts/01_data_ingestion_global.py || echo "⚠️ Data ingestion warning."
 
           echo "⚙️ Running feature engineering..."
-          python3 scripts/02_feature_engineering.py || echo "⚠️ Feature engineering skipped or partially failed."
+          python3 scripts/02_feature_engineering.py || echo "⚠️ Feature engineering warning."
+          python3 scripts/05_add_targets.py || echo "⚠️ Target addition warning."
 
-          echo "🎯 Adding targets..."
-          python3 scripts/05_add_targets.py || echo "⚠️ Add targets skipped or partially failed."
-
-          echo "📁 Linking latest dataset..."
-          latest_file=$(ls -t data/processed/features_with_targets_*.csv | grep -v latest | head -n 1)
-          if [ -n "$latest_file" ]; then
-            cp "$latest_file" data/processed/features_with_targets_latest.csv
-            echo "✅ Linked: $latest_file → features_with_targets_latest.csv"
-          else
-            echo "❌ No features_with_targets_*.csv found!"
+          echo "🔍 Searching for features_with_targets dataset..."
+          latest_file=$(ls -t data/processed/features_with_targets_*.csv 2>/dev/null | head -n 1)
+          if [ -z "$latest_file" ]; then
+            echo "❌ No features_with_targets dataset found. Skipping model training."
+            exit 1
           fi
+          cp "$latest_file" data/processed/features_with_targets_latest.csv
+          echo "✅ Using $latest_file for modeling."
 
-          echo "🤖 Training models..."
+          echo "📊 Running model training..."
           python3 scripts/03_modeling.py || echo "⚠️ Modeling failed."
 
           echo "🔁 Cross-validation..."
-          python3 scripts/07_cross_validation.py || echo "⚠️ Cross-validation failed."
+          python3 scripts/07_cross_validation.py || echo "⚠️ Cross-validation warning."
 
-          echo "📊 Evaluating models..."
-          python3 scripts/06_evaluate_models.py || echo "⚠️ Evaluation failed."
+          echo "📈 Evaluating models..."
+          [ -f logs/model_training_log.csv ] || echo "timestamp,model,metric,value" > logs/model_training_log.csv
+          python3 scripts/06_evaluate_models.py || echo "⚠️ Evaluation issue."
 
           echo "✅ Pipeline completed successfully!"
