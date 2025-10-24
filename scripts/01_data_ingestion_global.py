@@ -37,7 +37,7 @@ def load_api_key():
 
 
 FOOTBALL_API_KEY = load_api_key()
-HEADERS = {"X-RapidAPI-Key": FOOTBALL_API_KEY, "X-RapidAPI-Host": "api-football-v1.p.rapidapi.com"}
+HEADERS = {"x-apisports-key": FOOTBALL_API_KEY}
 
 # ==============================================================
 # 🌍 Ligas objetivo
@@ -88,7 +88,7 @@ def get_api_data(url: str, params: dict) -> dict:
 
 def fetch_fixtures(league_id: int, league_name: str):
     """Descarga fixtures para una liga específica."""
-    url = "https://api-football-v1.p.rapidapi.com/v3/fixtures"
+    url = "https://v3.football.api-sports.io/v3/fixtures"
     params = {"league": league_id, "season": SEASON}
 
     print(f"🏟️ Descargando {league_name} temporada {SEASON}...")
