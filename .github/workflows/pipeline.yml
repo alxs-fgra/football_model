@@ -25,7 +25,7 @@ jobs:
       - name: 🔑 Setup credentials
         run: |
           mkdir -p config
-          echo "{\"api_football_key\": \"\${{ secrets.FOOTBALL_API_KEY }}\"}" > config/credentials.json
+          echo "{"api_football_key": "${{ secrets.API_FOOTBALL_KEY }}"}" > config/credentials.json
 
       - name: 🚀 Run full ML pipeline
         run: |
