@@ -43,20 +43,24 @@ jobs:
 
       - name: 🔍 Debug Data
         run: |
-          echo "Archivos en data/processed:"
-          ls -la data/processed/ | head -10
-          echo "🧠 Detectando el archivo más reciente..."
+          echo "📂 Archivos en data/processed:"
+          if [ -d data/processed ]; then
+            ls -la data/processed/ | head -50
+          else
+            echo "⚠️ Directorio data/processed no encontrado"
+          fi
+          echo "🧠 Detectando archivo más reciente..."
           LATEST=$(ls -t data/processed/features_with_targets_*.csv 2>/dev/null | head -1)
           if [ -z "$LATEST" ]; then
             echo "❌ No se encontró ningún archivo features_with_targets_*.csv"
             exit 1
           fi
           echo "Archivo detectado: $LATEST"
-          export LATEST="$LATEST"  # ✅ exportar la variable para python y siguientes pasos
+          export LATEST="$LATEST"
           echo "LATEST=$LATEST" >> $GITHUB_ENV
-          echo "Columnas:"
-          python -c "import pandas as pd; import os; latest=os.environ['LATEST']; df=pd.read_csv(latest, nrows=0); print(df.columns.tolist())" || echo "⚠️ No se pudo leer columnas."
-          echo "Contenido inicial de model_training_log.csv:"
+          echo "🧾 Columnas:"
+          python -c "import pandas as pd, os; df=pd.read_csv(os.environ['LATEST'], nrows=0); print(df.columns.tolist())" || echo "⚠️ No se pudieron leer columnas."
+          echo "📊 Contenido inicial de logs/model_training_log.csv:"
           if [ -f logs/model_training_log.csv ]; then
             head -n 10 logs/model_training_log.csv
           else
