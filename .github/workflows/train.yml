@@ -6,17 +6,17 @@ on:
     - cron: "0 3 * * 1"  # Ejecuta cada lunes a las 03:00 UTC
 
 jobs:
-  train-football-model:
+  run-pipeline:
     runs-on: ubuntu-latest
 
     steps:
       - name: 🧾 Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python 3.10
-        uses: actions/setup-python@v4
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: 📦 Install dependencies
         run: |
@@ -33,24 +33,20 @@ jobs:
           FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
         run: python3 scripts/01_data_ingestion_global.py
 
-      - name: 🧠 Feature engineering
+      - name: 🧠 Run feature engineering
         run: python3 scripts/02_feature_engineering.py
-
-      - name: 🤖 Train models
-        run: python3 scripts/03_modeling.py
 
       - name: 🎯 Add targets
         run: python3 scripts/05_add_targets.py
 
-      - name: 🔍 Cross-validation
+      - name: 🏗️ Train models
+        run: python3 scripts/03_modeling.py
+
+      - name: 🔁 Cross-validation
         run: python3 scripts/07_cross_validation.py
 
-      - name: 🗂️ Upload logs and reports as artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: model-training-artifacts
-          path: |
-            logs/
-            reports/
-            models/
-            data/processed/
+      - name: 📊 Evaluate models
+        run: python3 scripts/06_evaluate_models.py
+
+      - name: ✅ Done
+        run: echo "✅ Pipeline completed successfully!"
