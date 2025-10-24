@@ -3,10 +3,10 @@ name: ⚙️ Automated Football Model Pipeline
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * 1"
+    - cron: "0 3 * * 1"  # Ejecuta cada lunes a las 03:00 UTC
 
 jobs:
-  run-pipeline-v2:
+  run-pipeline:
     runs-on: ubuntu-latest
     steps:
       - name: 🧾 Checkout repository
@@ -23,12 +23,19 @@ jobs:
           pip install -r requirements.txt
 
       - name: 🔑 Setup credentials
+        env:
+          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
         run: |
+          if [ -z "$FOOTBALL_API_KEY" ]; then
+            echo "❌ ERROR: FOOTBALL_API_KEY no encontrado en los secrets del repositorio."
+            exit 1
+          fi
           mkdir -p config
-          echo "{"api_football_key": "${{ secrets.API_FOOTBALL_KEY }}"}" > config/credentials.json
+          echo "{\"api_football_key\": \"$FOOTBALL_API_KEY\"}" > config/credentials.json
+          echo "✅ Archivo credentials.json generado correctamente."
 
       - name: 🚀 Run full ML pipeline
-        env:n          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}        run: |
+        run: |
           echo "🚀 Starting automated Football ML pipeline..."
           python3 scripts/01_data_ingestion_global.py
           python3 scripts/02_feature_engineering.py
