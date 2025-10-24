@@ -1,174 +1,120 @@
+#!/usr/bin/env python3
+# ==============================================================
+# Script: 03_modeling.py
+# Autor:  Alexis Figueroa
+# Descripción:
+#   Entrena modelos para los diferentes mercados (1X2, BTTS, Over/Under 2.5)
+#   usando el dataset más reciente con targets generados por add_targets.py
+# ==============================================================
+
 import os
+import glob
 import pandas as pd
 import numpy as np
+import logging
 from datetime import datetime
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.preprocessing import StandardScaler
+from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
-from catboost import CatBoostClassifier
-import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn.metrics import accuracy_score, f1_score
+import joblib
 
-# ==========================================
-# CONFIGURACIÓN GENERAL
-# ==========================================
-DATA_PATH = "data/processed/features_with_targets_20251023_161723.csv"
+# ==============================================================
+# CONFIGURACIÓN
+# ==============================================================
+
+DATA_DIR = "data/processed"
 MODELS_DIR = "models"
-REPORTS_DIR = "reports"
-LOGS_PATH = "logs/model_training_log.csv"
-
 os.makedirs(MODELS_DIR, exist_ok=True)
-os.makedirs(REPORTS_DIR, exist_ok=True)
-os.makedirs("logs", exist_ok=True)
 
-# ==========================================
-# FUNCIONES AUXILIARES
-# ==========================================
-def log_message(msg):
-    print(msg)
+# Buscar automáticamente el dataset más reciente
+files = sorted(
+    glob.glob(os.path.join(DATA_DIR, "features_with_targets_*.csv")),
+    key=os.path.getmtime,
+    reverse=True
+)
+if not files:
+    raise FileNotFoundError("❌ No se encontró ningún dataset con targets en data/processed/")
+else:
+    DATA_PATH = files[0]
+    print(f"📂 Loading latest dataset: {DATA_PATH}")
 
-def plot_feature_importance(importances, feature_names, model_name, target):
-    plt.figure(figsize=(10, 6))
-    idx = np.argsort(importances)[::-1]
-    plt.bar(range(len(importances)), importances[idx])
-    plt.xticks(range(len(importances)), np.array(feature_names)[idx], rotation=45, ha="right")
-    plt.title(f"Feature Importance: {model_name} ({target})")
-    plt.tight_layout()
-    filename = f"{REPORTS_DIR}/feature_importance_{target}_{model_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-    plt.savefig(filename)
-    plt.close()
-    return filename
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+logging.basicConfig(
+    filename=f"logs/model_training_{timestamp}.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
-def save_metrics_to_log(target, model_name, y_true, y_pred):
-    accuracy = accuracy_score(y_true, y_pred)
-    precision = precision_score(y_true, y_pred, average="weighted", zero_division=0)
-    recall = recall_score(y_true, y_pred, average="weighted", zero_division=0)
-    f1 = f1_score(y_true, y_pred, average="weighted", zero_division=0)
-    cm = confusion_matrix(y_true, y_pred)
+logging.info("🚀 Starting model training pipeline...")
 
-    log_entry = pd.DataFrame([{
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "target": target,
-        "model": model_name,
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1": f1
-    }])
-
-    if os.path.exists(LOGS_PATH):
-        log_entry.to_csv(LOGS_PATH, mode="a", header=False, index=False)
-    else:
-        log_entry.to_csv(LOGS_PATH, index=False)
-
-    return accuracy, precision, recall, f1, cm
-
-
-# ==========================================
-# CARGAR DATASET
-# ==========================================
-print("🚀 Starting model training pipeline...")
-
-if not os.path.exists(DATA_PATH):
-    raise FileNotFoundError(f"❌ Dataset not found: {DATA_PATH}")
+# ==============================================================
+# CARGA DE DATOS
+# ==============================================================
 
 df = pd.read_csv(DATA_PATH)
-print(f"📂 Loaded dataset: {DATA_PATH}")
-print(f"✅ Dataset loaded successfully: {len(df)} rows, {len(df.columns)} columns")
+logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
 
-# ==========================================
-# DEFINIR FEATURES SEGURAS (SIN LEAKAGE)
-# ==========================================
-FEATURES = [
-    "league_id", "season",
-    "home_avg_goals_last5", "home_avg_conceded_last5",
-    "away_avg_goals_last5", "away_avg_conceded_last5",
-    "season_progress", "league"
-]
+# Features y targets
+target_cols = ["target_result", "target_btts", "target_over25"]
+feature_cols = [col for col in df.columns if col not in target_cols]
 
-print(f"✅ Using {len(FEATURES)} clean features: {FEATURES}")
+X = df[feature_cols]
+y_results = df["target_result"]
+y_btts = df["target_btts"]
+y_over25 = df["target_over25"]
 
-# ==========================================
-# MODEL TRAINING FUNCTION
-# ==========================================
-def train_and_evaluate(df, target):
-    print(f"\n🏟️ Training models for: {target}")
+# ==============================================================
+# PREPROCESAMIENTO
+# ==============================================================
 
-    df_target = df.dropna(subset=[target])
-    print(f"🔎 Checking data for '{target}': {len(df)} → {len(df_target)} valid rows")
+imputer = SimpleImputer(strategy="mean")
+scaler = StandardScaler()
 
-    if len(df_target) < 100:
-        print(f"❌ Not enough samples for target '{target}'. Skipping.")
-        return None
+X_imputed = imputer.fit_transform(X)
+X_scaled = scaler.fit_transform(X_imputed)
 
-    X = df_target[FEATURES]
-    y = df_target[target]
+# Guardar scaler e imputer
+joblib.dump(imputer, os.path.join(MODELS_DIR, f"scaler_imputer_{timestamp}.pkl"))
+logging.info("💾 Imputer saved.")
+joblib.dump(scaler, os.path.join(MODELS_DIR, f"scaler_{timestamp}.pkl"))
+logging.info("💾 Scaler saved.")
 
-    # Codificar variables categóricas
-    X = pd.get_dummies(X, drop_first=True)
+# ==============================================================
+# ENTRENAMIENTO DE MODELOS
+# ==============================================================
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+def train_and_save_model(X, y, label: str):
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    model = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42)
+    model.fit(X_train, y_train)
 
-    models = {
-        "XGBoost": XGBClassifier(
-            n_estimators=200, max_depth=6, learning_rate=0.05,
-            subsample=0.8, colsample_bytree=0.8, eval_metric="mlogloss", random_state=42
-        ),
-        "RandomForest": RandomForestClassifier(
-            n_estimators=200, max_depth=8, random_state=42
-        ),
-        "CatBoost": CatBoostClassifier(
-            iterations=300, depth=6, learning_rate=0.05,
-            verbose=0, random_seed=42
-        ),
-    }
+    preds = model.predict(X_test)
+    acc = accuracy_score(y_test, preds)
+    f1 = f1_score(y_test, preds, average="macro")
 
-    results = []
-    for name, model in models.items():
-        print(f"⚙️ Training {name} for {target}...")
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+    model_path = os.path.join(MODELS_DIR, f"{label}_randomforest_{timestamp}.pkl")
+    joblib.dump(model, model_path)
 
-        accuracy, precision, recall, f1, cm = save_metrics_to_log(target, name, y_test, y_pred)
-        model_filename = f"{MODELS_DIR}/{target.lower()}_{name.lower()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
-        pd.to_pickle(model, model_filename)
-        fi_path = plot_feature_importance(model.feature_importances_, X.columns, name.lower(), target)
+    logging.info(f"✅ {label.upper()} model trained - ACC={acc:.3f} F1={f1:.3f}")
+    print(f"✅ {label.upper()} model trained - ACC={acc:.3f} F1={f1:.3f}")
 
-        print(f"💾 Model saved: {model_filename}")
-        print(f"📊 Feature importance saved: {fi_path}")
-        print(f"📄 Metrics logged: {LOGS_PATH}")
-
-        results.append({
-            "model": name,
-            "accuracy": round(accuracy, 4),
-            "precision": round(precision, 4),
-            "recall": round(recall, 4),
-            "f1": round(f1, 4)
-        })
-
-    df_results = pd.DataFrame(results)
-    print(f"\n📊 Results for {target}:\n{df_results}\n")
-    return df_results
+    return {"model": label, "acc": acc, "f1": f1, "path": model_path}
 
 
-# ==========================================
-# MAIN EXECUTION
-# ==========================================
-all_results = []
-for target in ["result", "btts", "over_2.5"]:
-    result_df = train_and_evaluate(df, target)
-    if result_df is not None:
-        result_df["target"] = target
-        all_results.append(result_df)
+results = []
+results.append(train_and_save_model(X_scaled, y_results, "result"))
+results.append(train_and_save_model(X_scaled, y_btts, "btts"))
+results.append(train_and_save_model(X_scaled, y_over25, "over_2.5"))
 
-if all_results:
-    summary_df = pd.concat(all_results, ignore_index=True)
-    summary_path = f"reports/model_performance_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-    summary_df.to_csv(summary_path, index=False)
-    print(f"📊 Summary of all models saved: {summary_path}")
+# ==============================================================
+# GUARDAR RESULTADOS
+# ==============================================================
 
-print("✅ Training pipeline finished.")
+summary_path = f"reports/model_performance_summary_{timestamp}.csv"
+pd.DataFrame(results).to_csv(summary_path, index=False)
+logging.info(f"📊 Model training summary saved → {summary_path}")
+
+print(f"🏁 Model training completed successfully! Summary → {summary_path}")
