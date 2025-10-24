@@ -1,120 +1,125 @@
+#!/usr/bin/env python3
+# ==============================================================
+# Script: 07_cross_validation.py
+# Autor:  Alexis Figueroa
+# Descripción:
+#   Ejecuta validación cruzada (K-Fold) sobre el dataset más reciente
+#   con targets, evaluando los 3 mercados: 1X2, BTTS y Over/Under 2.5
+# ==============================================================
+
 import os
+import glob
 import pandas as pd
 import numpy as np
 from datetime import datetime
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
-from catboost import CatBoostClassifier
+from sklearn.metrics import accuracy_score, f1_score
+import logging
 
-# ==========================================
+# ==============================================================
 # CONFIGURACIÓN
-# ==========================================
-DATA_PATH = "data/processed/features_with_targets_20251023_164110.csv"
+# ==============================================================
+
+DATA_DIR = "data/processed"
 REPORTS_DIR = "reports"
-LOGS_PATH = "logs/cross_validation_results.csv"
 os.makedirs(REPORTS_DIR, exist_ok=True)
-os.makedirs("logs", exist_ok=True)
 
-# ==========================================
-# FEATURES LIMPIAS (sin fuga)
-# ==========================================
-FEATURES = [
-    "league_id", "season",
-    "home_avg_goals_last5", "home_avg_conceded_last5",
-    "away_avg_goals_last5", "away_avg_conceded_last5",
-    "season_progress", "league"
-]
+# Buscar automáticamente el dataset más reciente
+files = sorted(
+    glob.glob(os.path.join(DATA_DIR, "features_with_targets_*.csv")),
+    key=os.path.getmtime,
+    reverse=True
+)
+if not files:
+    raise FileNotFoundError("❌ No se encontró ningún dataset con targets en data/processed/")
+else:
+    DATA_PATH = files[0]
+    print(f"📂 Using latest dataset for cross-validation: {DATA_PATH}")
 
-# ==========================================
-# MÉTRICAS AUXILIARES
-# ==========================================
-def evaluate_metrics(y_true, y_pred):
-    return {
-        "accuracy": accuracy_score(y_true, y_pred),
-        "precision": precision_score(y_true, y_pred, average="weighted", zero_division=0),
-        "recall": recall_score(y_true, y_pred, average="weighted", zero_division=0),
-        "f1": f1_score(y_true, y_pred, average="weighted", zero_division=0),
-    }
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+log_path = f"logs/cross_validation_{timestamp}.log"
 
-# ==========================================
-# ENTRENAR Y VALIDAR CON K-FOLD
-# ==========================================
-def cross_validate_model(model_name, model, X, y, target, n_splits=5):
-    print(f"\n🔁 Cross-validating {model_name} for target '{target}'...")
-    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+logging.basicConfig(
+    filename=log_path,
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
 
-    fold_metrics = []
-    for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), 1):
+# ==============================================================
+# CARGA DE DATOS
+# ==============================================================
+
+df = pd.read_csv(DATA_PATH)
+target_cols = ["target_result", "target_btts", "target_over25"]
+feature_cols = [col for col in df.columns if col not in target_cols]
+
+logging.info(f"✅ Dataset cargado ({len(df)} filas) para validación cruzada.")
+
+# ==============================================================
+# CONFIGURACIÓN DE VALIDACIÓN CRUZADA
+# ==============================================================
+
+kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+def cross_validate_market(X, y, label):
+    """Ejecuta validación cruzada para un mercado específico."""
+    acc_scores, f1_scores = [], []
+
+    for fold, (train_idx, test_idx) in enumerate(kf.split(X, y), 1):
         X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
         y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
 
+        model = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=fold)
         model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+        preds = model.predict(X_test)
 
-        metrics = evaluate_metrics(y_test, y_pred)
-        metrics["fold"] = fold
-        metrics["model"] = model_name
-        metrics["target"] = target
-        fold_metrics.append(metrics)
+        acc = accuracy_score(y_test, preds)
+        f1 = f1_score(y_test, preds, average="macro")
 
-        print(f"   Fold {fold}/{n_splits} - Acc: {metrics['accuracy']:.3f} | F1: {metrics['f1']:.3f}")
+        acc_scores.append(acc)
+        f1_scores.append(f1)
+        logging.info(f"{label.upper()} | Fold {fold}: ACC={acc:.3f}, F1={f1:.3f}")
 
-    df = pd.DataFrame(fold_metrics)
-    df["accuracy_mean"] = df["accuracy"].mean()
-    df["f1_mean"] = df["f1"].mean()
-    return df
-
-# ==========================================
-# PIPELINE PRINCIPAL
-# ==========================================
-print("🚀 Starting cross-validation pipeline...")
-df = pd.read_csv(DATA_PATH)
-print(f"📂 Loaded dataset: {len(df)} rows, {len(df.columns)} columns")
-
-results_all = []
-
-for target in ["result", "btts", "over_2.5"]:
-    df_target = df.dropna(subset=[target])
-    X = pd.get_dummies(df_target[FEATURES], drop_first=True)
-    y = df_target[target]
-
-    models = {
-        "XGBoost": XGBClassifier(
-            n_estimators=200, max_depth=6, learning_rate=0.05,
-            subsample=0.8, colsample_bytree=0.8, eval_metric="mlogloss", random_state=42
-        ),
-        "RandomForest": RandomForestClassifier(
-            n_estimators=200, max_depth=8, random_state=42
-        ),
-        "CatBoost": CatBoostClassifier(
-            iterations=300, depth=6, learning_rate=0.05,
-            verbose=0, random_seed=42
-        ),
+    return {
+        "market": label,
+        "acc_mean": np.mean(acc_scores),
+        "acc_std": np.std(acc_scores),
+        "f1_mean": np.mean(f1_scores),
+        "f1_std": np.std(f1_scores)
     }
 
-    for name, model in models.items():
-        df_metrics = cross_validate_model(name, model, X, y, target)
-        results_all.append(df_metrics)
+# ==============================================================
+# EJECUCIÓN DE VALIDACIÓN
+# ==============================================================
 
-# ==========================================
+results = []
+for target in target_cols:
+    label = target.replace("target_", "")
+    y = df[target]
+    X = df[feature_cols]
+
+    metrics = cross_validate_market(X, y, label)
+    results.append(metrics)
+    print(f"✅ {label.upper()} | ACC={metrics['acc_mean']:.3f} ±{metrics['acc_std']:.3f} | F1={metrics['f1_mean']:.3f} ±{metrics['f1_std']:.3f}")
+
+# ==============================================================
 # GUARDAR RESULTADOS
-# ==========================================
-summary_df = pd.concat(results_all, ignore_index=True)
-summary_csv = f"{REPORTS_DIR}/cross_validation_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-summary_df.to_csv(summary_csv, index=False)
+# ==============================================================
 
-# También guardar promedios por modelo
-avg_df = (
-    summary_df.groupby(["target", "model"])
-    [["accuracy", "precision", "recall", "f1"]]
-    .mean()
-    .reset_index()
-)
-avg_csv = f"{REPORTS_DIR}/cross_validation_avg_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-avg_df.to_csv(avg_csv, index=False)
+summary_path = os.path.join(REPORTS_DIR, f"cross_validation_summary_{timestamp}.csv")
+avg_path = os.path.join(REPORTS_DIR, f"cross_validation_avg_{timestamp}.csv")
 
-print("\n✅ Cross-validation finished!")
-print(f"📄 Detailed fold metrics: {summary_csv}")
-print(f"📊 Averages per model: {avg_csv}")
+pd.DataFrame(results).to_csv(summary_path, index=False)
+pd.DataFrame({
+    "metric": ["ACC_mean", "ACC_std", "F1_mean", "F1_std"],
+    "result": [np.mean([r["acc_mean"] for r in results]),
+               np.mean([r["acc_std"] for r in results]),
+               np.mean([r["f1_mean"] for r in results]),
+               np.mean([r["f1_std"] for r in results])]
+}).to_csv(avg_path, index=False)
+
+logging.info(f"📊 Cross-validation results saved: {summary_path}")
+logging.info(f"📈 Average results saved: {avg_path}")
+
+print(f"🏁 Cross-validation completed successfully!\n📊 Summary: {summary_path}\n📈 Averages: {avg_path}")
