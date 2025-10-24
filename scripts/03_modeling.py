@@ -27,6 +27,7 @@ import joblib
 DATA_DIR = "data/processed"
 MODELS_DIR = "models"
 os.makedirs(MODELS_DIR, exist_ok=True)
+os.makedirs("logs", exist_ok=True)
 
 # Buscar automáticamente el dataset más reciente
 files = sorted(

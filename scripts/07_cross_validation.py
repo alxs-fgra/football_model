@@ -24,6 +24,7 @@ import logging
 DATA_DIR = "data/processed"
 REPORTS_DIR = "reports"
 os.makedirs(REPORTS_DIR, exist_ok=True)
+os.makedirs("logs", exist_ok=True)
 
 # Buscar automáticamente el dataset más reciente
 files = sorted(
