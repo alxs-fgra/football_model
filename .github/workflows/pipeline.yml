@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
   schedule:
-    - cron: "0 12 * * 1"  # Lunes 06:00 America/Mexico_City (12:00 UTC)
+    - cron: "0 12 * * 1"  # Lunes 06:00 AM hora CDMX (12:00 UTC)
 
 jobs:
   run-football-pipeline:
@@ -46,8 +46,14 @@ jobs:
           echo "Archivos en data/processed:"
           ls -la data/processed/ | head -10
           echo "🧠 Detectando el archivo más reciente..."
-          LATEST=$(ls -t data/processed/features_with_targets_*.csv | head -1)
+          LATEST=$(ls -t data/processed/features_with_targets_*.csv 2>/dev/null | head -1)
+          if [ -z "$LATEST" ]; then
+            echo "❌ No se encontró ningún archivo features_with_targets_*.csv"
+            exit 1
+          fi
           echo "Archivo detectado: $LATEST"
+          export LATEST="$LATEST"  # ✅ exportar la variable para python y siguientes pasos
+          echo "LATEST=$LATEST" >> $GITHUB_ENV
           echo "Columnas:"
           python -c "import pandas as pd; import os; latest=os.environ['LATEST']; df=pd.read_csv(latest, nrows=0); print(df.columns.tolist())" || echo "⚠️ No se pudo leer columnas."
           echo "Contenido inicial de model_training_log.csv:"
@@ -59,6 +65,7 @@ jobs:
 
       - name: 📊 Train models
         run: |
+          echo "Usando dataset más reciente: $LATEST"
           python3 scripts/03_modeling.py || echo "⚠️ Modeling issue."
 
       - name: 🔁 Cross-validation
