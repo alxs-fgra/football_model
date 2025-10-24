@@ -3,7 +3,7 @@ name: ⚙️ Automated Football Model Pipeline
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 3 * * 1"
+    - cron: "0 3 * * 1"  # Runs every Monday at 03:00 UTC
 
 jobs:
   run-pipeline:
@@ -22,16 +22,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🔑 Setup credentials
+      - name: 🔑 Setup API credentials
         run: |
-          echo "FOOTBALL_API_KEY=${{ secrets.FOOTBALL_API_KEY }}" >> $GITHUB_ENV
           mkdir -p config
-          echo "{\"api_football_key\": \"${{ secrets.FOOTBALL_API_KEY }}\"}" > config/credentials.json
-          echo "✅ API key exported and credentials.json created"
+          echo "{\"api_football_key\": \"\${{ secrets.FOOTBALL_API_KEY }}\"}" > config/credentials.json
+
+      - name: 🧹 Clean old artifacts
+        run: |
+          rm -rf data/raw/* data/processed/* logs/* reports/* || true
+          mkdir -p data/raw data/processed logs reports
 
       - name: 🚀 Run full ML pipeline
-        env:
-          FOOTBALL_API_KEY: ${{ secrets.FOOTBALL_API_KEY }}
         run: |
           echo "🚀 Starting automated Football ML pipeline..."
           mkdir -p data/raw data/processed logs
@@ -40,24 +41,27 @@ jobs:
           python3 scripts/01_data_ingestion_global.py || echo "⚠️ Data ingestion skipped or partially failed."
 
           echo "⚙️ Running feature engineering..."
-          python3 scripts/02_feature_engineering.py || echo "⚠️ Feature engineering warning."
-          python3 scripts/05_add_targets.py || echo "⚠️ Target addition warning."
+          python3 scripts/02_feature_engineering.py || echo "⚠️ Feature engineering skipped or partially failed."
 
-          # ✅ Fix: Ensure we copy only the correct features_with_targets dataset
-          echo "🔍 Searching for features_with_targets dataset..."
-          latest_file=$(ls -t data/processed/features_with_targets_*.csv 2>/dev/null | head -n 1)
-          if [ -z "$latest_file" ]; then
-            echo "❌ No features_with_targets dataset found. Skipping model training."
-            exit 1
+          echo "🎯 Adding targets..."
+          python3 scripts/05_add_targets.py || echo "⚠️ Add targets skipped or partially failed."
+
+          echo "📁 Linking latest dataset..."
+          latest_file=$(ls -t data/processed/features_with_targets_*.csv | grep -v latest | head -n 1)
+          if [ -n "$latest_file" ]; then
+            cp "$latest_file" data/processed/features_with_targets_latest.csv
+            echo "✅ Linked: $latest_file → features_with_targets_latest.csv"
+          else
+            echo "❌ No features_with_targets_*.csv found!"
           fi
-          cp "$latest_file" data/processed/features_with_targets_latest.csv
-          echo "✅ Using $latest_file for modeling."
 
-          echo "📊 Running model training..."
-          python3 scripts/03_modeling.py || echo "⚠️ Modeling failed or no dataset found."
+          echo "🤖 Training models..."
+          python3 scripts/03_modeling.py || echo "⚠️ Modeling failed."
 
-          echo "🔁 Cross-validation and evaluation..."
-          python3 scripts/07_cross_validation.py || echo "⚠️ Cross-validation issue."
-          python3 scripts/06_evaluate_models.py || echo "⚠️ Evaluation issue."
+          echo "🔁 Cross-validation..."
+          python3 scripts/07_cross_validation.py || echo "⚠️ Cross-validation failed."
+
+          echo "📊 Evaluating models..."
+          python3 scripts/06_evaluate_models.py || echo "⚠️ Evaluation failed."
 
           echo "✅ Pipeline completed successfully!"
