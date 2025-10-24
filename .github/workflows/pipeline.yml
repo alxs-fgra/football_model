@@ -5,7 +5,7 @@ on:
     branches: [ main ]
   workflow_dispatch:
   schedule:
-    - cron: "0 12 * * 1"  # Lunes a las 6 AM hora de México (12:00 UTC)
+    - cron: "0 12 * * 1"  # Lunes 06:00 America/Mexico_City (12:00 UTC)
 
 jobs:
   run-football-pipeline:
@@ -24,16 +24,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: 🔑 Set environment variables
+      - name: 🔑 Export API key & credentials
         run: |
           echo "FOOTBALL_API_KEY=${{ secrets.FOOTBALL_API_KEY }}" >> $GITHUB_ENV
-
-      - name: 🧠 Create credentials file
-        run: |
           mkdir -p config
-          echo '{"api_key": "${{ secrets.FOOTBALL_API_KEY }}"}' > config/credentials.json
+          echo "{\"api_key\": \"${{ secrets.FOOTBALL_API_KEY }}\"}" > config/credentials.json
+          echo "✅ API key exported and credentials.json created"
 
-      - name: 🚀 Starting automated Football ML pipeline...
+      - name: 🚀 Run pipeline (ingest -> features -> targets)
         run: |
           mkdir -p data/raw data/processed logs reports
           echo "📥 Running data ingestion..."
@@ -47,8 +45,11 @@ jobs:
         run: |
           echo "Archivos en data/processed:"
           ls -la data/processed/ | head -10
-          echo "Columnas en features_with_targets_latest.csv:"
-          python -c "import pandas as pd; df=pd.read_csv('data/processed/features_with_targets_latest.csv', nrows=0); print(df.columns.tolist())"
+          echo "🧠 Detectando el archivo más reciente..."
+          LATEST=$(ls -t data/processed/features_with_targets_*.csv | head -1)
+          echo "Archivo detectado: $LATEST"
+          echo "Columnas:"
+          python -c "import pandas as pd; import os; latest=os.environ['LATEST']; df=pd.read_csv(latest, nrows=0); print(df.columns.tolist())" || echo "⚠️ No se pudo leer columnas."
           echo "Contenido inicial de model_training_log.csv:"
           if [ -f logs/model_training_log.csv ]; then
             head -n 10 logs/model_training_log.csv
@@ -56,7 +57,7 @@ jobs:
             echo "Archivo no encontrado"
           fi
 
-      - name: 📊 Running model training...
+      - name: 📊 Train models
         run: |
           python3 scripts/03_modeling.py || echo "⚠️ Modeling issue."
 
@@ -66,7 +67,11 @@ jobs:
 
       - name: 📈 Evaluate models
         run: |
-          python3 scripts/06_evaluate_models.py || echo "⚠️ Evaluation issue."
+          if [ -f logs/model_training_log.csv ]; then
+            python3 scripts/06_evaluate_models.py || echo "⚠️ Evaluation issue."
+          else
+            echo "⚠️ Skipping evaluation: model_training_log.csv not found."
+          fi
 
       - name: ✅ Final message
         run: echo "✅ Pipeline completed successfully!"
