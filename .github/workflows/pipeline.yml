@@ -53,6 +53,12 @@ jobs:
           cp "$latest_file" data/processed/features_with_targets_latest.csv
           echo "✅ Using $latest_file for modeling."
 
+      - name: 🔍 Debug Data
+        run: |
+          echo 'Archivos en data/processed:'
+          ls -la data/processed/ | head -10
+          echo 'Columnas en features_with_targets_latest.csv:'
+          python -c "import pandas as pd; df=pd.read_csv('data/processed/features_with_targets_latest.csv', nrows=0); print(df.columns.tolist())"
           echo "📊 Running model training..."
           python3 scripts/03_modeling.py || echo "⚠️ Modeling failed or no dataset found."
 

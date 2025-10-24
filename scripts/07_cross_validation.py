@@ -54,7 +54,8 @@ logging.basicConfig(
 df = pd.read_csv(DATA_PATH)
 df = df.select_dtypes(include=["number"])
 target_cols = ["result", "btts", "over_2.5"]
-feature_cols = [col for col in df.columns if col not in target_cols]
+leakage = ["result", "btts", "over_2.5", "home_goals", "away_goals", "total_goals"]
+feature_cols = [col for col in df.columns if col not in leakage]
 
 logging.info(f"✅ Dataset cargado ({len(df)} filas) para validación cruzada.")
 
