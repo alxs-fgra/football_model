@@ -1,6 +1,7 @@
 import os
-import pandas as pd
+import glob
 import logging
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.ensemble import RandomForestClassifier
@@ -8,7 +9,7 @@ from xgboost import XGBClassifier
 from catboost import CatBoostClassifier
 
 # ==========================================================
-# 🧠 Setup de logging
+# 🧠 Configuración de logging
 # ==========================================================
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
@@ -18,33 +19,39 @@ logging.basicConfig(
 )
 
 # ==========================================================
-# 📂 Detectar dataset dinámicamente
+# 📂 Selección dinámica del dataset
 # ==========================================================
-DATA_PATH = os.environ.get('LATEST', 'data/processed/features_with_targets_latest.csv')
+data_path = os.environ.get("LATEST", "").strip()
+if not data_path:
+    candidates = sorted(
+        glob.glob("data/processed/features_with_targets_*.csv"),
+        key=os.path.getmtime,
+        reverse=True
+    )
+    data_path = candidates[0] if candidates else ""
 
-if not os.path.exists(DATA_PATH):
-    processed_dir = "data/processed"
-    latest_files = [f for f in os.listdir(processed_dir) if f.startswith("features_with_targets_") and f.endswith(".csv")]
-    if latest_files:
-        latest_files.sort(key=lambda f: os.path.getmtime(os.path.join(processed_dir, f)), reverse=True)
-        DATA_PATH = os.path.join(processed_dir, latest_files[0])
-        print(f"⚙️ Usando dataset detectado automáticamente: {DATA_PATH}")
-    else:
-        raise FileNotFoundError("❌ No se encontró ningún archivo de dataset en data/processed")
+if not data_path or not os.path.exists(data_path):
+    logging.error("❌ No se encontró ningún dataset en data/processed/")
+    raise FileNotFoundError("No dataset found in data/processed/")
 
-df = pd.read_csv(DATA_PATH)
+logging.info(f"📦 Dataset seleccionado: {data_path}")
+df = pd.read_csv(data_path)
+
+# ==========================================================
+# 🔍 Limpieza y selección de columnas
+# ==========================================================
 df = df.select_dtypes(include=["number"])
-logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
+logging.info(f"✅ Dataset cargado ({len(df)} filas, {len(df.columns)} columnas)")
 
 # ==========================================================
-# 🎯 Variables y features
+# 🎯 Variables objetivo y features
 # ==========================================================
-leakage = ["result", "btts", "over_2.5", "home_goals", "away_goals", "total_goals"]
+leakage = ["result", "btts", "over_2.5", "goals_home", "away_goals", "total_goals"]
 feature_cols = [col for col in df.columns if col not in leakage]
 X = df[feature_cols]
 
 # ==========================================================
-# ⚙️ Función auxiliar
+# ⚙️ Función auxiliar de entrenamiento
 # ==========================================================
 def train_and_evaluate(model_name, model, X_train, X_test, y_train, y_test):
     model.fit(X_train, y_train)
@@ -55,7 +62,7 @@ def train_and_evaluate(model_name, model, X_train, X_test, y_train, y_test):
     return acc, f1
 
 # ==========================================================
-# 🚀 Entrenamiento
+# 🚀 Entrenamiento de modelos
 # ==========================================================
 results = []
 for target in ["result", "btts", "over_2.5"]:
@@ -73,17 +80,20 @@ for target in ["result", "btts", "over_2.5"]:
     results.append({"target": target, "accuracy": acc, "f1_score": f1})
 
 # ==========================================================
-# 💾 Guardar resultados
+# 💾 Guardado de resultados
 # ==========================================================
 os.makedirs("reports", exist_ok=True)
 results_df = pd.DataFrame(results)
-
 timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
 summary_path = f"reports/model_performance_summary_{timestamp}.csv"
 results_df.to_csv(summary_path, index=False)
 
-log_path = "logs/model_training_log.csv"
-results_df.to_csv(log_path, index=False)
+# Guardar log CSV acumulativo
+log_csv = "logs/model_training_log.csv"
+if os.path.exists(log_csv):
+    prev = pd.read_csv(log_csv)
+    results_df = pd.concat([prev, results_df], ignore_index=True)
+results_df.to_csv(log_csv, index=False)
 
-print(f"✅ Model training completed. Summary saved to {summary_path}")
-print(f"🧾 Training log saved to {log_path}")
+logging.info(f"🏁 Entrenamiento completado. Resultados guardados en {summary_path}")
+print(f"✅ Model training completed using {data_path}")
