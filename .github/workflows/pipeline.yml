@@ -57,6 +57,7 @@ jobs:
 
           echo "📈 Evaluating models..."
           [ -f logs/model_training_log.csv ] || echo "timestamp,model,metric,value" > logs/model_training_log.csv
+[ -f logs/model_training_log.csv ] || echo "timestamp,model,metric,value" > logs/model_training_log.csv
           python3 scripts/06_evaluate_models.py || echo "⚠️ Evaluation issue."
 
           echo "✅ Pipeline completed successfully!"
