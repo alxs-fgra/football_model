@@ -36,15 +36,23 @@ jobs:
           echo "🚀 Starting automated Football ML pipeline..."
           mkdir -p data/raw data/processed
 
+          echo "📥 Running data ingestion..."
           python3 scripts/01_data_ingestion_global.py || echo "⚠️ Data ingestion skipped or partially failed."
 
           echo "⚙️ Running feature engineering..."
           python3 scripts/02_feature_engineering.py || echo "⚠️ Feature engineering warning."
           python3 scripts/05_add_targets.py || echo "⚠️ Target addition warning."
 
+          # ✅ Ensure correct dataset is used
           if [ ! -f "data/processed/features_with_targets_latest.csv" ]; then
-            echo "⚙️ No processed dataset found, creating fallback dataset..."
-            find data/processed -name '*.csv' -exec cp {} data/processed/features_with_targets_latest.csv \; || true
+            echo "🔍 Searching for features_with_targets dataset..."
+            latest_file=$(ls -t data/processed/features_with_targets_*.csv 2>/dev/null | head -n 1)
+            if [ -z "$latest_file" ]; then
+              echo "❌ No features_with_targets dataset found. Skipping model training."
+              exit 1
+            fi
+            cp "$latest_file" data/processed/features_with_targets_latest.csv
+            echo "✅ Using $latest_file for modeling."
           fi
 
           echo "📊 Running model training..."
