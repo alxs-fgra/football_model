@@ -56,16 +56,16 @@ logging.info("🚀 Starting model training pipeline...")
 # ==============================================================
 
 df = pd.read_csv(DATA_PATH)
-logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
+df = df.select_dtypes(include=["number"])logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
 
 # Features y targets
-target_cols = ["result", "target_btts", "target_over25"]
+target_cols = ["result", "btts", "over_2.5"]
 feature_cols = [col for col in df.columns if col not in target_cols]
 
 X = df[feature_cols]
 y_results = df["result"]
-y_btts = df["target_btts"]
-y_over25 = df["target_over25"]
+y_btts = df["btts"]
+y_over25 = df["over_2.5"]
 
 # ==============================================================
 # PREPROCESAMIENTO
