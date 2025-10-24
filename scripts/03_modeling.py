@@ -56,7 +56,8 @@ logging.info("🚀 Starting model training pipeline...")
 # ==============================================================
 
 df = pd.read_csv(DATA_PATH)
-df = df.select_dtypes(include=["number"])logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
+df = df.select_dtypes(include=["number"])
+logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
 
 # Features y targets
 target_cols = ["result", "btts", "over_2.5"]
