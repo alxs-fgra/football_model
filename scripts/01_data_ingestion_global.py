@@ -2,179 +2,123 @@
 # -*- coding: utf-8 -*-
 """
 01_data_ingestion_global.py
-------------------------------------------------
-Script unificado para descarga e ingestión de datos de fútbol.
-
-✅ Descarga histórica (2015–2024)
-✅ Descarga temporada actual (2024/25)
-✅ Soporta múltiples ligas y copas
-✅ Compatible con ejecución local y GitHub Actions
-✅ Manejo de errores 403/429 con reintentos automáticos
-✅ Logs detallados y salida uniforme JSON/JSONL
-
-Uso manual:
-    python3 scripts/01_data_ingestion_global.py
-
-Uso en CI/CD:
-    Se ejecuta automáticamente dentro del pipeline de entrenamiento.
+-------------------------------------------------
+Script unificado de ingesta de datos para múltiples ligas.
+Compatible con ejecución local y GitHub Actions.
 """
 
 import os
 import json
 import time
 import requests
+import pandas as pd
 from datetime import datetime
 
-# =============================
-# ⚙️ CONFIGURACIÓN
-# =============================
+# ==============================================================
+# 🔑 Carga de API Key (desde entorno o archivo config/credentials.json)
+# ==============================================================
+def load_api_key():
+    api_key = os.getenv("FOOTBALL_API_KEY")
 
-API_KEY = os.getenv("FOOTBALL_API_KEY")
-BASE_URL = "https://v3.football.api-sports.io/fixtures"
-OUTPUT_DIR_RAW = "data/raw"
-OUTPUT_DIR_PROCESSED = "data/processed"
-LOG_FILE = f"logs/ingestion_global_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-
-os.makedirs(OUTPUT_DIR_RAW, exist_ok=True)
-os.makedirs(OUTPUT_DIR_PROCESSED, exist_ok=True)
-os.makedirs("logs", exist_ok=True)
-
-# =============================
-# 🏆 LIGAS A DESCARGAR
-# =============================
-
-LEAGUES = [
-    {"id": 39, "name": "Premier League"},
-    {"id": 140, "name": "La Liga"},
-    {"id": 78, "name": "Bundesliga"},
-    {"id": 135, "name": "Serie A"},
-    {"id": 61, "name": "Ligue 1"},
-    {"id": 71, "name": "Serie A (Brasil)"},
-    {"id": 262, "name": "Liga MX"},
-    {"id": 2, "name": "Champions League"},
-    {"id": 3, "name": "Europa League"},
-    {"id": 13, "name": "Copa Libertadores"},
-]
-
-SEASONS = list(range(2015, 2025))  # 2015 → 2024
-
-# =============================
-# 🧩 FUNCIONES AUXILIARES
-# =============================
-
-def log(msg: str):
-    """Guarda logs en consola y archivo."""
-    print(msg)
-    with open(LOG_FILE, "a") as f:
-        f.write(msg + "\n")
-
-
-def fetch_fixtures(league_id: int, season: int):
-    """Descarga fixtures desde API-Football con reintentos."""
-    url = BASE_URL
-    headers = {"x-apisports-key": API_KEY}
-    params = {"league": league_id, "season": season}
-
-    for attempt in range(3):
-        response = requests.get(url, headers=headers, params=params)
-        if response.status_code == 200:
-            return response.json()
-        elif response.status_code in [403, 429]:
-            wait = (attempt + 1) * 5
-            log(f"⚠️ Error {response.status_code} → reintentando en {wait}s... (intento {attempt + 1}/3)")
-            time.sleep(wait)
-        else:
-            log(f"❌ Error {response.status_code} al descargar liga {league_id} temporada {season}")
-            return None
-    return None
-
-
-def process_fixture_data(data: dict, league_id: int, season: int):
-    """Procesa datos crudos y los guarda en formato JSONL."""
-    fixtures = data.get("response", [])
-    if not fixtures:
-        log(f"⚠️ No se encontraron partidos válidos para liga {league_id} temporada {season}")
-        return 0
-
-    raw_filename = f"fixtures_league_{league_id}_{season}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    raw_path = os.path.join(OUTPUT_DIR_RAW, raw_filename)
-    with open(raw_path, "w") as f:
-        json.dump(data, f)
-    log(f"🗃 Crudos: {raw_path}")
-
-    processed = []
-    for fx in fixtures:
+    if not api_key and os.path.exists("config/credentials.json"):
         try:
-            processed.append({
-                "fixture_id": fx["fixture"]["id"],
-                "league_id": fx["league"]["id"],
-                "season": fx["league"]["season"],
-                "date": fx["fixture"]["date"],
-                "home_team": fx["teams"]["home"]["name"],
-                "away_team": fx["teams"]["away"]["name"],
-                "goals_home": fx["goals"]["home"],
-                "goals_away": fx["goals"]["away"],
-                "status": fx["fixture"]["status"]["short"],
-            })
-        except KeyError:
-            continue
+            with open("config/credentials.json", "r") as f:
+                creds = json.load(f)
+                api_key = creds.get("api_football_key")
+        except Exception as e:
+            print(f"⚠️ Error leyendo credentials.json: {e}")
 
-    if not processed:
-        log(f"⚠️ Archivo vacío o sin datos procesables para liga {league_id}, temporada {season}")
-        return 0
-
-    processed_filename = f"processed_league_{league_id}_{season}.jsonl"
-    processed_path = os.path.join(OUTPUT_DIR_PROCESSED, processed_filename)
-
-    with open(processed_path, "w") as f:
-        for p in processed:
-            f.write(json.dumps(p) + "\n")
-
-    log(f"🧹 Procesados: {processed_path}")
-    return len(processed)
-
-
-def run_global_ingestion():
-    """Orquesta la ingestión global."""
-    log("🌍 Iniciando ingestión global para 10 ligas...\n")
-    total_matches = 0
-    summary = {}
-
-    for league in LEAGUES:
-        lid, lname = league["id"], league["name"]
-        log(f"🏟️ {lname} (ID {lid}) → Iniciando descarga...\n")
-
-        league_total = 0
-        for season in SEASONS:
-            data = fetch_fixtures(lid, season)
-            if data:
-                count = process_fixture_data(data, lid, season)
-                league_total += count
-                time.sleep(1)
-
-        summary[lname] = league_total
-        total_matches += league_total
-        log(f"✅ Finalizado {lname}: {league_total} partidos")
-        log("------------------------------------------------------------\n")
-
-    log(f"\n🏁 Ingestión global completada en {round(total_matches / 7500, 2)} minutos (aprox).")
-    log("📦 Datos listos en data/raw/ y data/processed/.\n")
-
-    log("📊 Resumen general:")
-    for lname, count in summary.items():
-        log(f"   - {lname}: {count} partidos")
-
-    log(f"\n🔢 Total global: {sum(summary.values())} partidos descargados.")
-    log(f"🕒 Logs guardados en: {LOG_FILE}\n")
-
-
-# =============================
-# 🚀 MAIN
-# =============================
-if __name__ == "__main__":
-    if not API_KEY:
-        print("❌ ERROR: No se encontró FOOTBALL_API_KEY en el entorno. Usa:")
-        print('   export FOOTBALL_API_KEY="TU_API_KEY_AQUI"')
+    if not api_key:
+        print("❌ ERROR: No se encontró FOOTBALL_API_KEY ni credentials.json")
+        print("   Usa export FOOTBALL_API_KEY='TU_API_KEY_AQUI'")
         exit(1)
 
-    run_global_ingestion()
+    return api_key
+
+
+FOOTBALL_API_KEY = load_api_key()
+HEADERS = {"X-RapidAPI-Key": FOOTBALL_API_KEY, "X-RapidAPI-Host": "api-football-v1.p.rapidapi.com"}
+
+# ==============================================================
+# 🌍 Ligas objetivo
+# ==============================================================
+
+LEAGUES = {
+    39: "Premier League",
+    140: "La Liga",
+    61: "Ligue 1",
+    135: "Serie A",
+    78: "Bundesliga",
+    262: "Liga MX",
+}
+
+SEASON = 2024
+OUTPUT_DIR = "data/raw"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+
+# ==============================================================
+# ⚙️ Función para consultar API
+# ==============================================================
+
+def get_api_data(url: str, params: dict) -> dict:
+    """Consulta la API con manejo de errores y reintentos."""
+    retries = 3
+    for attempt in range(1, retries + 1):
+        try:
+            response = requests.get(url, headers=HEADERS, params=params, timeout=20)
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 429:
+                print("⏳ Límite de peticiones alcanzado. Esperando 60s...")
+                time.sleep(60)
+            else:
+                print(f"⚠️ Error HTTP {response.status_code}: {response.text}")
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ Intento {attempt}/{retries} fallido: {e}")
+            time.sleep(5)
+
+    print("❌ Error persistente: no se pudo obtener datos.")
+    return {}
+
+
+# ==============================================================
+# 📊 Descarga y almacenamiento
+# ==============================================================
+
+def fetch_fixtures(league_id: int, league_name: str):
+    """Descarga fixtures para una liga específica."""
+    url = "https://api-football-v1.p.rapidapi.com/v3/fixtures"
+    params = {"league": league_id, "season": SEASON}
+
+    print(f"🏟️ Descargando {league_name} temporada {SEASON}...")
+    data = get_api_data(url, params)
+    if not data or "response" not in data:
+        print(f"⚠️ No se encontraron datos para {league_name}.")
+        return
+
+    df = pd.json_normalize(data["response"])
+    file_path = os.path.join(OUTPUT_DIR, f"{league_name.lower().replace(' ', '_')}_{SEASON}.csv")
+    df.to_csv(file_path, index=False)
+    print(f"✅ {league_name} guardada en: {file_path}")
+
+
+# ==============================================================
+# 🚀 Ejecución principal
+# ==============================================================
+
+def main():
+    print(f"\n🚀 Iniciando ingesta global de datos para {len(LEAGUES)} ligas...")
+    print(f"📅 Temporada: {SEASON}\n")
+
+    for league_id, league_name in LEAGUES.items():
+        fetch_fixtures(league_id, league_name)
+        time.sleep(3)  # Delay para evitar rate limit
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    print(f"\n✅ Ingesta completada correctamente a las {timestamp}.\n")
+    print(f"Archivos disponibles en: {OUTPUT_DIR}")
+
+
+if __name__ == "__main__":
+    main()
