@@ -8,17 +8,17 @@ from xgboost import XGBClassifier
 from catboost import CatBoostClassifier
 
 # ==========================================================
-# 🧠 Logging setup
+# 🧠 Setup de logging
 # ==========================================================
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
-    filename="logs/model_training_log.csv",
+    filename="logs/model_training.log",  # Archivo separado para logging
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 # ==========================================================
-# 📂 Load latest dataset
+# 📂 Carga del dataset más reciente
 # ==========================================================
 DATA_PATH = "data/processed/features_with_targets_latest.csv"
 if not os.path.exists(DATA_PATH):
@@ -30,15 +30,14 @@ df = df.select_dtypes(include=["number"])
 logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
 
 # ==========================================================
-# 🎯 Define features and targets (remove leakage)
+# 🎯 Definición de variables
 # ==========================================================
-target_cols = ["result", "btts", "over_2.5"]
 leakage = ["result", "btts", "over_2.5", "home_goals", "away_goals", "total_goals"]
 feature_cols = [col for col in df.columns if col not in leakage]
 X = df[feature_cols]
 
 # ==========================================================
-# ⚙️ Training helper
+# ⚙️ Función auxiliar de entrenamiento
 # ==========================================================
 def train_and_evaluate(model_name, model, X_train, X_test, y_train, y_test):
     model.fit(X_train, y_train)
@@ -49,16 +48,15 @@ def train_and_evaluate(model_name, model, X_train, X_test, y_train, y_test):
     return acc, f1
 
 # ==========================================================
-# 🚀 Train models
+# 🚀 Entrenamiento de modelos
 # ==========================================================
 results = []
 
-for target in target_cols:
+for target in ["result", "btts", "over_2.5"]:
     y = df[target]
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+    # Selección del modelo base según el target
     if target == "result":
         model = XGBClassifier(n_estimators=150, learning_rate=0.1, max_depth=6, random_state=42)
     elif target == "btts":
@@ -70,19 +68,23 @@ for target in target_cols:
     results.append({"target": target, "accuracy": acc, "f1_score": f1})
 
 # ==========================================================
-# 💾 Save reports and logs
+# 💾 Guardado de resultados
 # ==========================================================
 os.makedirs("reports", exist_ok=True)
 results_df = pd.DataFrame(results)
 
+# 1️⃣ Guardar resumen principal
 timestamp = pd.Timestamp.now().strftime("%Y%m%d_%H%M%S")
 summary_path = f"reports/model_performance_summary_{timestamp}.csv"
 results_df.to_csv(summary_path, index=False)
 logging.info(f"🏁 Model training completed successfully → {summary_path}")
 
-# Save log (append if exists)
+# 2️⃣ Guardar log adicional para evaluación (sin anexado problemático)
 log_path = "logs/model_training_log.csv"
-results_df.to_csv(log_path, mode="a", header=not os.path.exists(log_path), index=False)
+if os.path.exists(log_path):
+    existing_df = pd.read_csv(log_path)
+    results_df = pd.concat([existing_df, results_df], ignore_index=True)
+results_df.to_csv(log_path, index=False)
 logging.info(f"🧾 Training log saved at {log_path}")
 
 print(f"✅ Model training completed. Summary saved to {summary_path}")
