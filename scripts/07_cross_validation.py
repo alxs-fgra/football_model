@@ -52,7 +52,7 @@ logging.basicConfig(
 # ==============================================================
 
 df = pd.read_csv(DATA_PATH)
-target_cols = ["target_result", "target_btts", "target_over25"]
+target_cols = ["result", "target_btts", "target_over25"]
 feature_cols = [col for col in df.columns if col not in target_cols]
 
 logging.info(f"✅ Dataset cargado ({len(df)} filas) para validación cruzada.")

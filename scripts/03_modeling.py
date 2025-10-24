@@ -59,11 +59,11 @@ df = pd.read_csv(DATA_PATH)
 logging.info(f"✅ Dataset loaded: {DATA_PATH} ({len(df)} rows)")
 
 # Features y targets
-target_cols = ["target_result", "target_btts", "target_over25"]
+target_cols = ["result", "target_btts", "target_over25"]
 feature_cols = [col for col in df.columns if col not in target_cols]
 
 X = df[feature_cols]
-y_results = df["target_result"]
+y_results = df["result"]
 y_btts = df["target_btts"]
 y_over25 = df["target_over25"]
 
