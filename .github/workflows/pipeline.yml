@@ -25,14 +25,15 @@ jobs:
       - name: 🔑 Setup credentials
         run: |
           mkdir -p config
-          echo "{\"api_football_key\": \"\${{ secrets.FOOTBALL_API_KEY }}\"}" > config/credentials.json
+          printf '{"api_football_key": "%s"}' "${{ secrets.FOOTBALL_API_KEY }}" > config/credentials.json
+          echo "✅ credentials.json created successfully"
 
       - name: 🚀 Run full ML pipeline
         run: |
           echo "🚀 Starting automated Football ML pipeline..."
           python3 scripts/01_data_ingestion_global.py
           python3 scripts/02_feature_engineering.py
-          
+
           echo "🔄 Checking if processed data exists..."
           if [ ! -d "data/processed" ] || [ -z "$(ls -A data/processed 2>/dev/null)" ]; then
             echo "⚙️ No processed data found, running feature generation..."
@@ -41,7 +42,7 @@ jobs:
           else
             echo "✅ Processed data already exists."
           fi
-          
+
           python3 scripts/03_modeling.py
           python3 scripts/07_cross_validation.py
           python3 scripts/06_evaluate_models.py
