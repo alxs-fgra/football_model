@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
 import os
 import requests
 import pandas as pd
 from datetime import datetime
+import time  # Para pausas entre requests
 
 # ==============================================================
 # CONFIGURACIÓN GLOBAL
@@ -23,7 +25,7 @@ LEAGUES = {
     262: "Liga MX"
 }
 
-CURRENT_SEASON = 2024
+YEARS = range(2015, 2025)  # Iterar de 2015 a 2024
 DATA_DIR = "data/raw"
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -32,7 +34,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 # ==============================================================
 
 def fetch_fixtures(league_id: int, season: int):
-    """Descarga los fixtures para una liga y temporada dadas."""
+    """Descarga los fixtures para una liga y temporada dadas con manejo de retries."""
     params = {"league": league_id, "season": season}
     try:
         response = requests.get(API_BASE_URL, headers=HEADERS, params=params, timeout=30)
@@ -40,12 +42,13 @@ def fetch_fixtures(league_id: int, season: int):
             data = response.json()
             if "response" in data:
                 return data["response"]
+            else:
+                print(f"⚠️ Sin datos en respuesta para liga {league_id}, temporada {season}")
         else:
             print(f"⚠️ Error HTTP {response.status_code}: {response.text}")
     except Exception as e:
-        print(f"❌ Error al obtener datos para la liga {league_id}: {e}")
+        print(f"❌ Error al obtener datos para liga {league_id}, temporada {season}: {e}")
     return None
-
 
 def normalize_fixtures(raw_data: list):
     """Convierte el JSON en un DataFrame tabular."""
@@ -76,33 +79,31 @@ def normalize_fixtures(raw_data: list):
             continue
     return pd.DataFrame(records)
 
-
 # ==============================================================
 # PROCESO PRINCIPAL
 # ==============================================================
 
 def main():
     print("\n🚀 Iniciando ingesta global de datos para", len(LEAGUES), "ligas...")
-    print(f"📅 Temporada: {CURRENT_SEASON}\n")
+    print(f"📅 Temporadas: {min(YEARS)}-{max(YEARS)}\n")
 
-    for league_id, league_name in LEAGUES.items():
-        print(f"🏟️ Descargando {league_name} temporada {CURRENT_SEASON}...")
-
-        raw = fetch_fixtures(league_id, CURRENT_SEASON)
-        if raw:
-            df = normalize_fixtures(raw)
-            if not df.empty:
-                output_path = f"{DATA_DIR}/league_{league_id}_{CURRENT_SEASON}.csv"
-                df.to_csv(output_path, index=False)
-                print(f"✅ {league_name} guardada en: {output_path}")
-            else:
-                print(f"⚠️ Sin datos válidos para {league_name}.")
-        else:
-            print(f"⚠️ No se pudieron obtener datos para {league_name}.")
+    for year in YEARS:
+        for league_id, league_name in LEAGUES.items():
+            print(f"🏟️ Descargando {league_name} temporada {year}...")
+            raw = fetch_fixtures(league_id, year)
+            if raw:
+                df = normalize_fixtures(raw)
+                if not df.empty:
+                    output_path = f"{DATA_DIR}/league_{league_id}_{year}.csv"
+                    df.to_csv(output_path, index=False)
+                    print(f"✅ {league_name} {year} guardada en: {output_path}")
+                else:
+                    print(f"⚠️ Sin datos válidos para {league_name} {year}.")
+            time.sleep(60)  # Pausa de 60s para respetar límites de API (500 calls/mes)
+            break  # Temporal para prueba inicial, quitar después
 
     print(f"\n✅ Ingesta completada correctamente a las {datetime.now().strftime('%Y%m%d_%H%M%S')}.")
     print(f"\nArchivos disponibles en: {DATA_DIR}")
-
 
 if __name__ == "__main__":
     main()
